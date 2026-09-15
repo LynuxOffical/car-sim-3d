@@ -1,0 +1,4 @@
+# pygame-ce: drop-in pygame replacement with wheels for recent Python versions
+pygame-ce>=2.5
+PyOpenGL>=3.1
+PyOpenGL-accelerate>=3.1; platform_python_implementation == "CPython"
