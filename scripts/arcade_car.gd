@@ -7,9 +7,10 @@ const CarPaint := preload("res://scripts/car_paint.gd")
 const REVERSE_ACCEL := 14.0
 const MAX_REVERSE_SPEED := -18.0
 const ROLL_DECAY := 0.15
-const DRAG := 0.005
+const DRAG := 0.0042
 const HP_MAX := 100
 const HANDLING := 1.32
+const SPEED_MULT := 1.14
 
 var display_name := "P1"
 var kind := "car"
@@ -56,8 +57,8 @@ func configure(car: Dictionary, paint: Color, p_name := "P1", police := false) -
 	display_name = p_name
 	kind = str(car.get("kind", "car"))
 	car_id = str(car.get("id", "corolla"))
-	max_speed = float(car.get("max_speed", car.get("speed", 115.0)))
-	accel = float(car.get("accel", 30.0))
+	max_speed = float(car.get("max_speed", car.get("speed", 115.0))) * SPEED_MULT
+	accel = float(car.get("accel", 30.0)) * 1.08
 	if accel <= 3.0:
 		accel = 30.0 * maxf(accel, 0.5)
 	brake_rate = float(car.get("brake", 50.0))

@@ -60,7 +60,8 @@ func _host() -> void:
 	if not ok:
 		note.text = Net.error if Net.error != "" else Net.status
 		return
-	get_tree().change_scene_to_file("res://scenes/lobby.tscn")
+	if is_inside_tree():
+		GameState.change_scene("res://scenes/lobby.tscn")
 
 
 func _join() -> void:
@@ -69,7 +70,8 @@ func _join() -> void:
 	if not ok:
 		note.text = Net.error if Net.error != "" else "Join failed"
 		return
-	get_tree().change_scene_to_file("res://scenes/lobby.tscn")
+	if is_inside_tree():
+		GameState.change_scene("res://scenes/lobby.tscn")
 
 
 func _unhandled_input(event: InputEvent) -> void:

@@ -21,6 +21,7 @@ func _ready() -> void:
 	Engine.physics_ticks_per_second = 60
 	get_tree().physics_interpolation = false
 	var vp := get_viewport()
+	vp.disable_3d = false
 	match GameState.quality:
 		0:
 			vp.msaa_3d = Viewport.MSAA_DISABLED
@@ -60,11 +61,24 @@ func _ready() -> void:
 		var touch: Node = preload("res://scripts/touch_ui.gd").new()
 		add_child(touch)
 		touch.call("setup", player, cam)
+	if cam:
+		cam.current = true
 	if Net.online:
-		Net.room_updated.connect(_sync_firebase)
+		if not Net.room_updated.is_connected(_sync_firebase):
+			Net.room_updated.connect(_sync_firebase)
+		call_deferred("_sync_firebase")
 	if Lan.active:
 		multiplayer.peer_connected.connect(func(_id): pass)
 		multiplayer.peer_disconnected.connect(_lan_drop)
+	call_deferred("_ensure_view")
+
+
+func _ensure_view() -> void:
+	var vp := get_viewport()
+	if vp:
+		vp.disable_3d = false
+	if cam and is_instance_valid(cam):
+		cam.current = true
 
 
 func _lighting() -> void:
@@ -269,7 +283,6 @@ func _process(delta: float) -> void:
 				"s": snappedf(player.speed_kmh, 0.1),
 				"lobby": false,
 			})
-		_sync_firebase()
 	if Lan.active and player:
 		sync_acc += delta
 		if sync_acc >= 0.04:

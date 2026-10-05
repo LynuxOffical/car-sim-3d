@@ -26,6 +26,8 @@ var road_mats: Array[ShaderMaterial] = []
 var open_city := false
 var _batch: SurfaceTool
 
+const WIDTH_SCALE := 1.16
+
 const MAPS := [
 	{
 		"name": "MEADOW CIRCUIT", "tag": "classic  -  flowing corners", "biome": "meadow", "width": 16.0, "samples": 14,
@@ -97,6 +99,10 @@ const MAPS := [
 const DEFS := MAPS
 
 
+func _lane_half(spec: Dictionary) -> float:
+	return float(spec.get("width", 16.0)) * 0.5 * WIDTH_SCALE
+
+
 func build(only_index: int = -1, p_roam: bool = false) -> void:
 	roam = p_roam
 	islands.clear()
@@ -124,7 +130,7 @@ func build(only_index: int = -1, p_roam: bool = false) -> void:
 	idx = clampi(idx, 0, MAPS.size() - 1)
 	_build_one(idx, Vector3.ZERO)
 	theme = MAPS[idx]
-	half_width = float(theme["width"]) * 0.5
+	half_width = _lane_half(theme)
 
 
 func expand_chain() -> void:
@@ -138,7 +144,7 @@ func expand_chain() -> void:
 	for i in n:
 		_build_one(i, origins[i])
 	theme = MAPS[3]
-	half_width = float(theme["width"]) * 0.5
+	half_width = _lane_half(theme)
 	_begin_batch()
 	for i in n:
 		_bridge(origins[i], origins[(i + 1) % n])
@@ -285,7 +291,7 @@ func _build_one(idx: int, origin: Vector3) -> void:
 	var spec: Dictionary = MAPS[idx]
 	if theme.is_empty():
 		theme = spec
-	half_width = float(spec["width"]) * 0.5
+	half_width = _lane_half(spec)
 	var pts: Array = spec["points"]
 	var samples: int = int(spec["samples"])
 	var wps: Array[Vector2] = _catmull(pts, samples)

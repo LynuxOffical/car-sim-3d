@@ -3,6 +3,7 @@ extends "res://scripts/rainy_menu.gd"
 var players_lab: Label
 var chat_lab: Label
 var chat_edit: LineEdit
+var _launching := false
 
 func header_text() -> String:
 	return "ROOM  %s" % Net.room
@@ -61,6 +62,8 @@ func _add(parent: Control, b: Button, cb: Callable) -> void:
 
 
 func _refresh() -> void:
+	if _launching:
+		return
 	if title:
 		title.text = "ROOM  %s" % Net.room
 	var names: PackedStringArray = PackedStringArray()
@@ -68,28 +71,35 @@ func _refresh() -> void:
 		var p: Variant = Net.players[uid]
 		if typeof(p) == TYPE_DICTIONARY:
 			names.append(str(p.get("name", uid)))
-	players_lab.text = "PLAYERS  %d\n%s" % [names.size(), "   ·   ".join(names)]
+	if players_lab:
+		players_lab.text = "PLAYERS  %d\n%s" % [names.size(), "   ·   ".join(names)]
 	var lines: PackedStringArray = PackedStringArray()
 	for m in Net.chat:
 		lines.append("%s: %s" % [str(m.get("name", "?")), str(m.get("text", ""))])
-	chat_lab.text = "\n".join(lines)
+	if chat_lab:
+		chat_lab.text = "\n".join(lines)
 	if Net.started and not Net.hosting:
 		_go_drive()
 
 
 func _start() -> void:
+	if _launching or not Net.hosting:
+		return
 	await Net.mark_started()
 	_go_drive()
 
 
 func _go_drive() -> void:
+	if _launching:
+		return
+	_launching = true
 	GameState.mode = GameState.Mode.FREEPLAY
 	GameState.split_screen = false
 	var idx := 0
 	if typeof(Net.meta.get("map_idx")) != TYPE_NIL:
 		idx = int(Net.meta.get("map_idx", 0))
 	GameState.race_island = maxi(idx, 0)
-	get_tree().change_scene_to_file("res://scenes/loading.tscn")
+	GameState.change_scene("res://scenes/loading.tscn")
 
 
 func _unhandled_input(event: InputEvent) -> void:

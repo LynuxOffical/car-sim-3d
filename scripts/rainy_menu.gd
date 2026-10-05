@@ -16,12 +16,29 @@ var menu_env: Environment
 var menu_vp: SubViewport
 var menu_sun: DirectionalLight3D
 var menu_time := 0.0
+var _placeholder: ColorRect
 
 func _ready() -> void:
 	set_anchors_preset(PRESET_FULL_RECT)
-	_build_world()
+	_placeholder = ColorRect.new()
+	_placeholder.set_anchors_preset(PRESET_FULL_RECT)
+	_placeholder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_placeholder.color = Color(0.05, 0.07, 0.10, 1)
+	add_child(_placeholder)
 	_build_chrome()
 	build_ui()
+	call_deferred("_build_world_behind")
+
+
+func _build_world_behind() -> void:
+	_build_world()
+	if menu_vp:
+		var wrap := menu_vp.get_parent()
+		if wrap:
+			move_child(wrap, 0)
+	if _placeholder and is_instance_valid(_placeholder):
+		_placeholder.queue_free()
+		_placeholder = null
 	refresh_preview()
 
 

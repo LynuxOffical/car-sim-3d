@@ -17,7 +17,7 @@ const CHECKPOINT_COUNT := 4
 const LAP_OPTIONS: Array[int] = [1, 3, 5, 7]
 const OPPONENT_OPTIONS: Array[int] = [1, 2, 3, 4, 5]
 const CAMERA_MODES: Array[String] = ["CHASE", "HOOD", "TOP"]
-const STAT_TOP := {"max_speed": 139.0, "accel": 38.0, "steer": 2.90}
+const STAT_TOP := {"max_speed": 159.0, "accel": 41.0, "steer": 2.90}
 const QUALITY_NAMES: Array[String] = ["LOW", "MEDIUM", "HIGH"]
 
 const WEATHERS := [
@@ -220,3 +220,13 @@ func set_weather(label: String) -> void:
 		return
 	weather_label = label
 	weather_changed.emit(label)
+
+
+func change_scene(path: String) -> void:
+	call_deferred("_change_scene_now", path)
+
+
+func _change_scene_now(path: String) -> void:
+	var t := get_tree()
+	if t:
+		t.change_scene_to_file(path)

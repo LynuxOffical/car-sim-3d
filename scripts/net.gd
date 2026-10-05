@@ -28,6 +28,7 @@ var _pending: Dictionary = {}
 var _write_busy := false
 var _poll_busy := false
 var _auth_done := false
+var _last_status := 0
 
 func _ready() -> void:
 	_load_cfg()
@@ -121,7 +122,10 @@ func host_room() -> bool:
 			"players": {},
 			"chat": {},
 		}
+		error = ""
 		await _rest(HTTPClient.METHOD_PUT, "rooms/" + code, payload)
+		if _last_status >= 400:
+			continue
 		room = code
 		hosting = true
 		online = true
@@ -290,6 +294,7 @@ func _rest(method: int, path: String, payload: Variant = null) -> Variant:
 	var done: Array = await _http.request_completed
 	var code: int = done[1]
 	var raw: PackedByteArray = done[3]
+	_last_status = code
 	if code >= 400:
 		error = "HTTP %d" % code
 		if code == 401 or code == 403:
