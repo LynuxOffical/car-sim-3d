@@ -53,9 +53,9 @@ func overlay_dim() -> Color:
 			return Color(0, 0, 0, 0.12)
 		return Color(0.02, 0.03, 0.06, 0.34)
 	if chrome_kind() == "python":
-		return Color(0.02, 0.03, 0.06, 0.38)
+		return Color(0.02, 0.03, 0.06, 0.30)
 	if world_kind() == "showroom":
-		return Color(0.0, 0.0, 0.0, 0.18)
+		return Color(0.0, 0.0, 0.0, 0.12)
 	return Color(0.02, 0.05, 0.06, 0.28)
 
 
@@ -118,7 +118,7 @@ func _build_world() -> void:
 		sun.light_color = Color(0.96, 0.95, 0.92)
 	elif world_kind() == "track":
 		sun.rotation_degrees = Vector3(-52, 38, 0)
-		sun.light_energy = 1.4
+		sun.light_energy = 1.15
 		sun.light_color = Color(1.0, 0.95, 0.88)
 	else:
 		sun.rotation_degrees = Vector3(-50, 20, 0)
@@ -149,11 +149,18 @@ func _build_world() -> void:
 		world.add_child(ring)
 		var fill := OmniLight3D.new()
 		fill.position = Vector3(-3.5, 2.4, 2.2)
-		fill.light_energy = 1.6
-		fill.light_color = Color(0.55, 0.70, 0.95)
+		fill.light_energy = 1.8
+		fill.light_color = Color(0.62, 0.74, 0.95)
 		fill.omni_range = 12.0
 		fill.shadow_enabled = false
 		world.add_child(fill)
+		var rim := OmniLight3D.new()
+		rim.position = Vector3(3.2, 1.6, -2.8)
+		rim.light_energy = 1.2
+		rim.light_color = Color(0.95, 0.78, 0.55)
+		rim.omni_range = 10.0
+		rim.shadow_enabled = false
+		world.add_child(rim)
 	elif world_kind() == "track":
 		vp_world = world
 		menu_env = env
@@ -178,9 +185,8 @@ func _build_world() -> void:
 	cam.fov = 58.0
 	world.add_child(cam)
 	if world_kind() == "showroom":
-		cam.position = Vector3(4.2, 1.7, 5.6)
-		cam.fov = 46.0
-		cam.look_at(Vector3(0.0, 0.55, 0.0))
+		cam.fov = 42.0
+		_orbit_showroom()
 	elif world_kind() == "track":
 		_orbit_camera()
 	else:
@@ -281,6 +287,17 @@ func _build_chrome() -> void:
 	dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	dim.color = overlay_dim()
 	add_child(dim)
+	if chrome_kind() == "python":
+		var topbar := Panel.new()
+		var sb := StyleBoxFlat.new()
+		sb.bg_color = Color(0.03, 0.04, 0.07, 0.58)
+		sb.border_width_bottom = 1
+		sb.border_color = Color(1, 1, 1, 0.10)
+		topbar.add_theme_stylebox_override("panel", sb)
+		topbar.set_anchors_preset(PRESET_TOP_WIDE)
+		topbar.offset_bottom = 90
+		topbar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(topbar)
 	title = UiKit.shadow_label(header_text(), header_px(), Color(0.94, 0.96, 0.98))
 	if chrome_kind() == "python":
 		title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -384,12 +401,22 @@ func _refresh_labels() -> void:
 		]
 
 
+func _orbit_showroom() -> void:
+	if cam == null:
+		return
+	var a := menu_time * 0.32
+	cam.position = Vector3(sin(a) * 5.6, 1.55, cos(a) * 6.1)
+	cam.look_at(Vector3(0.0, 0.48, 0.0))
+
+
 func _process(_delta: float) -> void:
 	menu_time += _delta
 	if world_kind() == "track":
 		_orbit_camera()
+	elif world_kind() == "showroom":
+		_orbit_showroom()
 	if preview_host and show_preview():
-		preview_host.rotation.y += _delta * 0.35
+		preview_host.rotation.y += _delta * 0.18
 	if splash and splash.visible:
 		var pulse := 1.0 + sin(Time.get_ticks_msec() * 0.006) * 0.04
 		splash.scale = Vector2(pulse, pulse)

@@ -74,14 +74,17 @@ func setup(p: PlayerCar, w: IslandWorld) -> void:
 	banner.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
 	banner.add_theme_constant_override("shadow_offset_x", 3)
 	hud_root.add_child(banner)
+	var nitro_lab := _lab(Vector2(28, 138), 13)
+	nitro_lab.text = "NITRO"
+	nitro_lab.add_theme_color_override("font_color", Color(0.70, 0.82, 0.90))
 	var nitro := ColorRect.new()
-	nitro.color = Color(0, 0, 0, 0.55)
-	nitro.position = Vector2(28, 140)
+	nitro.color = Color(0.02, 0.03, 0.05, 0.70)
+	nitro.position = Vector2(28, 158)
 	nitro.size = Vector2(180, 12)
 	hud_root.add_child(nitro)
 	nitro_fill = ColorRect.new()
 	nitro_fill.color = Color(0.2, 0.75, 1.0)
-	nitro_fill.position = Vector2(30, 142)
+	nitro_fill.position = Vector2(30, 160)
 	nitro_fill.size = Vector2(176, 8)
 	hud_root.add_child(nitro_fill)
 
@@ -151,7 +154,8 @@ func _minimap() -> void:
 func _draw_map() -> void:
 	if map.size.x < 8.0 or map.size.y < 8.0:
 		return
-	map.draw_rect(Rect2(Vector2.ZERO, map.size), Color(0.04, 0.05, 0.06, 0.72))
+	map.draw_rect(Rect2(Vector2.ZERO, map.size), Color(0.03, 0.04, 0.07, 0.80))
+	map.draw_rect(Rect2(Vector2.ZERO, map.size), Color(1, 1, 1, 0.12), false, 1.5)
 	if world == null or world.wps2.is_empty():
 		return
 	var pts: Array = world.wps2

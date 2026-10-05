@@ -26,38 +26,37 @@ func show_preview() -> bool:
 func build_ui() -> void:
 	if GameState.race_island < 0:
 		GameState.race_island = 0
-	var top := VBoxContainer.new()
-	top.set_anchors_preset(PRESET_TOP_WIDE)
-	top.offset_top = 100
-	top.offset_bottom = 240
-	top.alignment = BoxContainer.ALIGNMENT_CENTER
-	add_child(top)
-	name_lab = UiKit.shadow_label("", 24, Color(1.0, 0.9, 0.45))
+	var card := UiKit.panel()
+	card.set_anchors_preset(PRESET_BOTTOM_WIDE)
+	card.offset_left = 80
+	card.offset_right = -80
+	card.offset_top = -210
+	card.offset_bottom = -22
+	add_child(card)
+	var col := VBoxContainer.new()
+	col.alignment = BoxContainer.ALIGNMENT_CENTER
+	col.add_theme_constant_override("separation", 10)
+	card.add_child(col)
+	name_lab = UiKit.shadow_label("", 26, Color(0.96, 0.97, 0.99))
 	name_lab.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	top.add_child(name_lab)
+	col.add_child(name_lab)
+	tag_lab = UiKit.shadow_label("", 16, Color(0.72, 0.80, 0.88))
+	tag_lab.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	col.add_child(tag_lab)
 	var nav := HBoxContainer.new()
 	nav.alignment = BoxContainer.ALIGNMENT_CENTER
-	nav.add_theme_constant_override("separation", 20)
-	top.add_child(nav)
-	_add(nav, UiKit.py_btn("<  PREV", Color(0.85, 0.88, 0.9), 22, 200), func() -> void:
+	nav.add_theme_constant_override("separation", 14)
+	col.add_child(nav)
+	_add(nav, UiKit.menu_btn("<  Prev", Color(0.70, 0.74, 0.80), 16, 150), func() -> void:
 		_step(-1)
 	)
-	_add(nav, UiKit.py_btn("ENTER  START", Color(0.5, 1.0, 0.55), 24, 280), _start)
-	_add(nav, UiKit.py_btn("NEXT  >", Color(0.85, 0.88, 0.9), 22, 200), func() -> void:
+	_add(nav, UiKit.menu_btn("Enter  Race", Color(0.42, 0.86, 0.52), 16, 220), _start)
+	_add(nav, UiKit.menu_btn("Next  >", Color(0.70, 0.74, 0.80), 16, 150), func() -> void:
 		_step(1)
 	)
-	var bottom := VBoxContainer.new()
-	bottom.set_anchors_preset(PRESET_BOTTOM_WIDE)
-	bottom.offset_top = -140
-	bottom.offset_bottom = -16
-	bottom.alignment = BoxContainer.ALIGNMENT_END
-	add_child(bottom)
-	tag_lab = UiKit.shadow_label("", 22, Color(0.82, 0.85, 0.92))
-	tag_lab.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	bottom.add_child(tag_lab)
-	var hint := UiKit.shadow_label("LEFT/RIGHT browse    ENTER start    ESC back", 16, Color(0.7, 0.72, 0.8))
+	var hint := UiKit.shadow_label("LEFT / RIGHT browse    ENTER start    ESC garage", 13, Color(0.62, 0.66, 0.72))
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	bottom.add_child(hint)
+	col.add_child(hint)
 	rebuild_track(GameState.race_island)
 	_sync()
 
@@ -75,7 +74,7 @@ func _sync() -> void:
 	if name_lab:
 		name_lab.text = "<   %s   >" % str(spec["name"])
 	if tag_lab:
-		tag_lab.text = str(spec.get("tag", ""))
+		tag_lab.text = "%s    ·    %d / %d" % [str(spec.get("tag", "")), i + 1, IslandWorld.DEFS.size()]
 
 
 func _start() -> void:

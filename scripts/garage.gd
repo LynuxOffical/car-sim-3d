@@ -5,6 +5,7 @@ var tag_lab: Label
 var paint_lab: Label
 var bar_fills: Array[ColorRect] = []
 var swatch_row: HBoxContainer
+var tab_row: HBoxContainer
 var tab := 0
 var picking_p2 := false
 var _p1_car := 0
@@ -46,20 +47,11 @@ func build_ui() -> void:
 	tag_lab = UiKit.shadow_label("", 16, Color(0.72, 0.78, 0.86))
 	tag_lab.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	top.add_child(tag_lab)
-	var tabs := HBoxContainer.new()
-	tabs.alignment = BoxContainer.ALIGNMENT_CENTER
-	tabs.add_theme_constant_override("separation", 12)
-	top.add_child(tabs)
-	_add(tabs, UiKit.pill("CARS", tab == 0, 160), func() -> void:
-		tab = 0
-		_first_of_kind()
-		_refresh_car()
-	)
-	_add(tabs, UiKit.pill("BIKES", tab == 1, 160), func() -> void:
-		tab = 1
-		_first_of_kind()
-		_refresh_car()
-	)
+	tab_row = HBoxContainer.new()
+	tab_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	tab_row.add_theme_constant_override("separation", 12)
+	top.add_child(tab_row)
+	_rebuild_tabs()
 
 	var stats_panel := UiKit.panel()
 	stats_panel.set_anchors_preset(Control.PRESET_LEFT_WIDE)
@@ -79,15 +71,9 @@ func build_ui() -> void:
 		row.add_theme_constant_override("separation", 4)
 		var lab := UiKit.shadow_label(label, 13, Color(0.78, 0.80, 0.84))
 		row.add_child(lab)
-		var bg := ColorRect.new()
-		bg.color = Color(0.08, 0.09, 0.12, 0.92)
-		bg.custom_minimum_size = Vector2(300, 14)
-		var fill := ColorRect.new()
-		fill.color = Color(0.38, 0.78, 0.72)
-		fill.size = Vector2(300, 14)
-		bg.add_child(fill)
-		bar_fills.append(fill)
-		row.add_child(bg)
+		var pair: Array = UiKit.stat_bar(300)
+		bar_fills.append(pair[1] as ColorRect)
+		row.add_child(pair[0])
 		stats.add_child(row)
 
 	var bottom := UiKit.panel()
@@ -128,6 +114,26 @@ func build_ui() -> void:
 	_refresh_car()
 
 
+func _rebuild_tabs() -> void:
+	if tab_row == null:
+		return
+	for c in tab_row.get_children():
+		tab_row.remove_child(c)
+		c.free()
+	_add(tab_row, UiKit.pill("CARS", tab == 0, 160), func() -> void:
+		tab = 0
+		_first_of_kind()
+		_rebuild_tabs()
+		_refresh_car()
+	)
+	_add(tab_row, UiKit.pill("BIKES", tab == 1, 160), func() -> void:
+		tab = 1
+		_first_of_kind()
+		_rebuild_tabs()
+		_refresh_car()
+	)
+
+
 func _refresh_car() -> void:
 	refresh_preview()
 	_update_car_ui()
@@ -148,8 +154,7 @@ func _update_car_ui() -> void:
 	]
 	for i in bar_fills.size():
 		var f := clampf(fracs[i], 0.05, 1.0)
-		bar_fills[i].custom_minimum_size = Vector2(300.0 * f, 14.0)
-		bar_fills[i].size = Vector2(300.0 * f, 14.0)
+		bar_fills[i].size = Vector2((300.0 - 4.0) * f, 12.0)
 
 
 func _rebuild_swatches() -> void:

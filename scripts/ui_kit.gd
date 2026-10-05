@@ -100,22 +100,43 @@ static func _card(fill: Color, accent: Color) -> StyleBoxFlat:
 static func panel() -> PanelContainer:
 	var p := PanelContainer.new()
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.04, 0.05, 0.08, 0.72)
-	sb.border_color = Color(1, 1, 1, 0.08)
+	sb.bg_color = Color(0.04, 0.05, 0.08, 0.78)
+	sb.border_color = Color(1, 1, 1, 0.10)
 	sb.border_width_left = 1
 	sb.border_width_top = 1
 	sb.border_width_right = 1
 	sb.border_width_bottom = 1
-	sb.corner_radius_top_left = 14
-	sb.corner_radius_top_right = 14
-	sb.corner_radius_bottom_left = 14
-	sb.corner_radius_bottom_right = 14
+	sb.corner_radius_top_left = 16
+	sb.corner_radius_top_right = 16
+	sb.corner_radius_bottom_left = 16
+	sb.corner_radius_bottom_right = 16
 	sb.content_margin_left = 18
 	sb.content_margin_right = 18
 	sb.content_margin_top = 16
 	sb.content_margin_bottom = 16
+	sb.shadow_color = Color(0, 0, 0, 0.22)
+	sb.shadow_size = 10
+	sb.shadow_offset = Vector2(0, 4)
 	p.add_theme_stylebox_override("panel", sb)
 	return p
+
+
+static func stat_bar(width := 300.0) -> Array:
+	var bg := Panel.new()
+	bg.custom_minimum_size = Vector2(width, 16)
+	var bg_sb := StyleBoxFlat.new()
+	bg_sb.bg_color = Color(0.08, 0.09, 0.12, 0.95)
+	bg_sb.corner_radius_top_left = 8
+	bg_sb.corner_radius_top_right = 8
+	bg_sb.corner_radius_bottom_left = 8
+	bg_sb.corner_radius_bottom_right = 8
+	bg.add_theme_stylebox_override("panel", bg_sb)
+	var fill := ColorRect.new()
+	fill.color = Color(0.38, 0.82, 0.74)
+	fill.position = Vector2(2, 2)
+	fill.size = Vector2(width - 4, 12)
+	bg.add_child(fill)
+	return [bg, fill]
 
 
 static func shadow_label(text: String, px: int, col := Color(0.93, 0.95, 0.9)) -> Label:

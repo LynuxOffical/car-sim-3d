@@ -43,7 +43,7 @@ func build_ui() -> void:
 	var streak := ""
 	if GameState.win_streak > 0:
 		streak = "   ·   win streak x%d" % GameState.win_streak
-	tag_lab = UiKit.shadow_label("arcade circuits  ·  kenney cars  ·  first across the line wins%s" % streak, 16, Color(0.78, 0.82, 0.88))
+	tag_lab = UiKit.shadow_label("13 circuits  ·  kenney cars  ·  first across the line wins%s" % streak, 16, Color(0.78, 0.82, 0.88))
 	tag_lab.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	root.add_child(tag_lab)
 

@@ -9,7 +9,7 @@ const MAX_REVERSE_SPEED := -18.0
 const ROLL_DECAY := 0.15
 const DRAG := 0.005
 const HP_MAX := 100
-const HANDLING := 1.24
+const HANDLING := 1.32
 
 var display_name := "P1"
 var kind := "car"
@@ -198,11 +198,11 @@ func arcade_step(delta: float, throttle: float, steer: float) -> void:
 	speed = clampf(speed, MAX_REVERSE_SPEED, top)
 	if not is_zero_approx(steer) and absf(speed) > 0.1:
 		var ratio := minf(absf(speed) / maxf(max_speed, 1.0), 1.0)
-		var effect := sin(minf(ratio * 1.65, 1.0) * PI * 0.5)
-		effect *= (1.0 - 0.14 * ratio)
+		var effect := sin(minf(ratio * 1.72, 1.0) * PI * 0.5)
+		effect *= (1.0 - 0.08 * ratio)
 		var direction := 1.0 if speed >= 0.0 else -1.0
 		heading += steer * steer_rate * grip * effect * direction * delta
-	visual_steer = lerpf(visual_steer, steer, minf(1.0, delta * 10.0))
+	visual_steer = lerpf(visual_steer, steer, minf(1.0, delta * 12.0))
 	_wheel_roll += speed * delta / wheel_radius
 	# Godot vehicles drive toward local -Z (same as the old VehicleBody3D setup).
 	var fx := -sin(heading)
@@ -216,8 +216,11 @@ func arcade_step(delta: float, throttle: float, steer: float) -> void:
 	rotation = Vector3(0, heading, 0)
 	speed_kmh = absf(speed) * 3.6
 	if visual:
+		var lean := visual_steer * minf(absf(speed) / 38.0, 1.0)
 		if kind == "bike":
-			visual.rotation.z = lerp_angle(visual.rotation.z, -steer * (0.52 if absf(speed) > 8.0 else 0.22), delta * 7.0)
+			visual.rotation.z = lerp_angle(visual.rotation.z, -lean * 0.52, delta * 8.0)
+		else:
+			visual.rotation.z = lerp_angle(visual.rotation.z, -lean * 0.10, delta * 7.0)
 		if wreck_t > 0.0:
 			visual.visible = int(wreck_t * 8.0) % 2 == 0
 		else:
