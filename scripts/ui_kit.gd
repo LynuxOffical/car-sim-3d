@@ -45,6 +45,8 @@ static func menu_btn(text: String, accent: Color, px := 20, min_w := 420.0) -> B
 	b.add_theme_stylebox_override("hover", hv)
 	b.add_theme_stylebox_override("pressed", pr)
 	b.add_theme_stylebox_override("focus", hv)
+	b.focus_mode = Control.FOCUS_NONE
+	b.mouse_filter = Control.MOUSE_FILTER_STOP
 	return b
 
 

@@ -74,12 +74,10 @@ func _lighting() -> void:
 	env.background_mode = Environment.BG_SKY
 	env.tonemap_mode = Environment.TONE_MAPPER_ACES
 	env.tonemap_exposure = 0.96
-	env.ssao_enabled = GameState.quality >= 2
-	env.ssao_radius = 0.7
-	env.ssao_intensity = 0.85
+	env.ssao_enabled = false
 	env.ssil_enabled = false
-	env.glow_enabled = GameState.quality >= 1
-	env.glow_intensity = 0.06
+	env.glow_enabled = GameState.quality >= 2
+	env.glow_intensity = 0.05
 	env.ssr_enabled = false
 	env.sdfgi_enabled = false
 	env.fog_enabled = true
@@ -94,11 +92,11 @@ func _lighting() -> void:
 	sun.rotation_degrees = Vector3(-52, 38, 0)
 	sun.light_energy = 1.12
 	sun.light_color = Color(1.0, 0.96, 0.88)
-	sun.shadow_enabled = true
+	sun.shadow_enabled = GameState.quality > 0
 	sun.shadow_bias = 0.08
 	sun.shadow_normal_bias = 2.2
-	sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS
-	sun.directional_shadow_max_distance = 180.0 if GameState.quality >= 2 else 120.0
+	sun.directional_shadow_mode = DirectionalLight3D.SHADOW_ORTHOGONAL if GameState.quality < 2 else DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS
+	sun.directional_shadow_max_distance = 150.0 if GameState.quality >= 2 else 90.0
 	add_child(sun)
 
 
@@ -152,7 +150,7 @@ func _make_cam(who: Node3D, spawn: Vector3, head: float) -> Camera3D:
 	add_child(c)
 	c.call("setup", who)
 	c.fov = GameState.fov
-	c.far = 2600.0 if not land.roam else 3800.0
+	c.far = 1800.0 if not land.roam else 2800.0
 	return c
 
 

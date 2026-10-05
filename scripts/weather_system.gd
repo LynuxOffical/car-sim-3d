@@ -19,9 +19,10 @@ func setup(p_env: Environment, p_sun: DirectionalLight3D, p_player: Node3D, p_wo
 	sun = p_sun
 	player = p_player
 	world = p_world
-	rain = _particles(Color(0.62, 0.7, 0.82, 0.65), 280 if GameState.quality < 2 else 500, Vector3(0.15, -34, 0.05), 0.045)
-	snow = _particles(Color(0.92, 0.95, 1.0, 0.85), 180 if GameState.quality < 2 else 280, Vector3(0, -8, 0), 0.08)
-	dust = _particles(Color(0.78, 0.58, 0.28, 0.62), 140 if GameState.quality < 2 else 220, Vector3(18, -1.2, 6), 0.16)
+	var q := GameState.quality
+	rain = _particles(Color(0.62, 0.7, 0.82, 0.65), 90 if q == 0 else (180 if q == 1 else 280), Vector3(0.15, -34, 0.05), 0.045)
+	snow = _particles(Color(0.92, 0.95, 1.0, 0.85), 60 if q == 0 else (120 if q == 1 else 180), Vector3(0, -8, 0), 0.08)
+	dust = _particles(Color(0.78, 0.58, 0.28, 0.62), 50 if q == 0 else (90 if q == 1 else 140), Vector3(18, -1.2, 6), 0.16)
 	add_child(rain)
 	add_child(snow)
 	add_child(dust)

@@ -363,14 +363,11 @@ func _ground_from_wps(wps: Array[Vector2], origin: Vector3, col: Color) -> void:
 	var mi := MeshInstance3D.new()
 	var plane := PlaneMesh.new()
 	plane.size = Vector2(maxp.x - minp.x + 900.0, maxp.y - minp.y + 900.0)
-	plane.subdivide_width = 8
-	plane.subdivide_depth = 8
+	plane.subdivide_width = 0
+	plane.subdivide_depth = 0
 	mi.mesh = plane
 	mi.position = origin + Vector3((minp.x + maxp.x) * 0.5, -0.05, (minp.y + maxp.y) * 0.5)
-	var gmat := ShaderMaterial.new()
-	gmat.shader = load("res://shaders/ground.gdshader")
-	gmat.set_shader_parameter("albedo", col)
-	mi.material_override = gmat
+	mi.material_override = Mats.ground(col)
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	mi.gi_mode = GeometryInstance3D.GI_MODE_DISABLED
 	add_child(mi)
@@ -422,11 +419,7 @@ func _road(wps: Array[Vector2], _dirs: Array[Vector2], norms: Array[Vector2], or
 	var mesh := st.commit()
 	var mi := MeshInstance3D.new()
 	mi.mesh = mesh
-	var mat := ShaderMaterial.new()
-	mat.shader = load("res://shaders/asphalt.gdshader")
-	mat.set_shader_parameter("albedo", spec["road"])
-	mat.set_shader_parameter("roughness", 0.72)
-	mat.set_shader_parameter("wet", 0.0)
+	var mat := Mats.asphalt(spec["road"])
 	mi.material_override = mat
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	mi.gi_mode = GeometryInstance3D.GI_MODE_DISABLED
@@ -662,9 +655,9 @@ func _norm_at(wps: Array[Vector2], i: int) -> Vector2:
 
 func _city_blocks(wps: Array[Vector2], origin: Vector3, rng: RandomNumberGenerator, shadows: bool, factory: bool) -> void:
 	var o := Vector3(origin.x, 0, origin.z)
-	var step := 3 if GameState.quality >= 2 else (4 if GameState.quality == 1 else 6)
+	var step := 4 if GameState.quality >= 2 else (5 if GameState.quality == 1 else 7)
 	if roam:
-		step += 2
+		step += 3
 	for i in range(0, wps.size(), step):
 		var nrm := _norm_at(wps, i)
 		var d: Vector2 = wps[(i + 1) % wps.size()] - wps[i]
@@ -680,11 +673,11 @@ func _city_blocks(wps: Array[Vector2], origin: Vector3, rng: RandomNumberGenerat
 				Kit.spawn_fitted(self, Kit.pick(Kit.CITY, rng), pos, face, rng.randf_range(14.0, 32.0), 16.0, shadows)
 			else:
 				Kit.spawn_fitted(self, Kit.pick(Kit.TOWERS, rng), pos, face, rng.randf_range(36.0, 72.0), 18.0, shadows)
-			if rng.randf() < 0.28:
+			if GameState.quality > 0 and rng.randf() < 0.12:
 				_street_lamp(Vector3(wps[i].x + nrm.x * side * (half_width + 3.4), 0.0, wps[i].y + nrm.y * side * (half_width + 3.4)) + o)
-	var extra := 18 if GameState.quality >= 2 else (10 if GameState.quality == 1 else 6)
+	var extra := 12 if GameState.quality >= 2 else (7 if GameState.quality == 1 else 4)
 	if roam:
-		extra = maxi(6, int(float(extra) * 0.5))
+		extra = maxi(4, int(float(extra) * 0.4))
 	var planted := 0
 	var guard := 0
 	var box := _bbox(wps)
@@ -714,21 +707,33 @@ func _street_lamp(pos: Vector3) -> void:
 	pole.position = pos + Vector3(0, 2.7, 0)
 	pole.material_override = Mats.solid(Color(0.18, 0.18, 0.2), 0.4, 0.45)
 	pole.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	pole.gi_mode = GeometryInstance3D.GI_MODE_DISABLED
 	add_child(pole)
-	var light := OmniLight3D.new()
-	light.position = pos + Vector3(0, 5.3, 0)
-	light.light_energy = 1.4 if str(theme.get("biome", "")) == "city" else 0.8
-	light.light_color = Color(1.0, 0.92, 0.75)
-	light.omni_range = 18.0
-	light.shadow_enabled = false
-	add_child(light)
+	var bulb := MeshInstance3D.new()
+	var sph := SphereMesh.new()
+	sph.radius = 0.14
+	sph.height = 0.28
+	sph.radial_segments = 8
+	sph.rings = 4
+	bulb.mesh = sph
+	bulb.position = pos + Vector3(0, 5.3, 0)
+	var em := StandardMaterial3D.new()
+	em.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	em.albedo_color = Color(1.0, 0.94, 0.78)
+	em.emission_enabled = true
+	em.emission = Color(1.0, 0.92, 0.7)
+	em.emission_energy_multiplier = 2.2
+	bulb.material_override = em
+	bulb.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	bulb.gi_mode = GeometryInstance3D.GI_MODE_DISABLED
+	add_child(bulb)
 
 
 func _nature_belt(wps: Array[Vector2], origin: Vector3, rng: RandomNumberGenerator, kit: Array[String], smin: float, smax: float, shadows: bool, vcol: bool) -> void:
 	var o := Vector3(origin.x, 0, origin.z)
-	var step := 3 if GameState.quality >= 2 else 5
+	var step := 4 if GameState.quality >= 2 else 6
 	if roam:
-		step += 2
+		step += 3
 	for i in range(0, wps.size(), step):
 		var nrm := _norm_at(wps, i)
 		for side in [-1.0, 1.0]:

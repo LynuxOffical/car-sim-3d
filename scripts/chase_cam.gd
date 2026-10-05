@@ -14,7 +14,7 @@ func setup(who: Node3D) -> void:
 	current = true
 	fov = GameState.fov
 	near = 0.25
-	far = 2600.0
+	far = 1800.0
 	_snap()
 
 

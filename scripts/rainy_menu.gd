@@ -13,6 +13,8 @@ var splash: Label
 var land: IslandWorld
 var vp_world: Node3D
 var menu_env: Environment
+var menu_vp: SubViewport
+var menu_sun: DirectionalLight3D
 var menu_time := 0.0
 
 func _ready() -> void:
@@ -66,9 +68,10 @@ func _build_world() -> void:
 	wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(wrap)
 	var vp := SubViewport.new()
+	menu_vp = vp
 	vp.size = Vector2i(1280, 720)
 	vp.own_world_3d = true
-	vp.msaa_3d = Viewport.MSAA_4X
+	_apply_menu_quality()
 	vp.handle_input_locally = false
 	vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	vp.transparent_bg = false
@@ -109,9 +112,10 @@ func _build_world() -> void:
 	world.add_child(env_n)
 
 	var sun := DirectionalLight3D.new()
-	sun.shadow_enabled = true
+	menu_sun = sun
+	sun.shadow_enabled = GameState.quality > 0
 	sun.directional_shadow_mode = DirectionalLight3D.SHADOW_ORTHOGONAL
-	sun.directional_shadow_max_distance = 420.0
+	sun.directional_shadow_max_distance = 280.0
 	if world_kind() == "showroom":
 		sun.rotation_degrees = Vector3(-38, 48, 0)
 		sun.light_energy = 1.05
@@ -185,7 +189,7 @@ func _build_world() -> void:
 	cam.fov = 58.0
 	world.add_child(cam)
 	if world_kind() == "showroom":
-		cam.fov = 42.0
+		cam.fov = 52.0
 		_orbit_showroom()
 	elif world_kind() == "track":
 		_orbit_camera()
@@ -216,6 +220,7 @@ func rebuild_track(idx: int) -> void:
 		Mats.paint_sky(menu_env, sky, ground)
 		menu_env.fog_light_color = sky
 	_orbit_camera()
+	_apply_menu_weather()
 
 
 func _orbit_camera() -> void:
@@ -401,12 +406,61 @@ func _refresh_labels() -> void:
 		]
 
 
+func apply_menu_settings() -> void:
+	_apply_menu_quality()
+	_apply_menu_weather()
+
+
+func _apply_menu_quality() -> void:
+	if menu_vp == null:
+		return
+	match GameState.quality:
+		0:
+			menu_vp.msaa_3d = Viewport.MSAA_DISABLED
+		1:
+			menu_vp.msaa_3d = Viewport.MSAA_2X
+		_:
+			menu_vp.msaa_3d = Viewport.MSAA_4X
+	if menu_sun:
+		menu_sun.shadow_enabled = GameState.quality > 0
+
+
+func _apply_menu_weather() -> void:
+	if menu_env == null or world_kind() != "track":
+		return
+	var w: Dictionary = GameState.weather()
+	var sky: Color = land.theme.get("sky", Color(0.66, 0.80, 0.95)) if land else Color(0.66, 0.80, 0.95)
+	var ground: Color = land.theme.get("ground", Color(0.29, 0.50, 0.23)) if land else Color(0.29, 0.50, 0.23)
+	var name := str(w.get("name", "CLEAR"))
+	var fog := 0.00105
+	var energy := 1.15
+	match name:
+		"RAIN":
+			sky = sky.lerp(Color(0.38, 0.44, 0.52), 0.55)
+			fog = 0.004
+			energy = 0.72
+		"STORM":
+			sky = sky.lerp(Color(0.28, 0.32, 0.40), 0.7)
+			fog = 0.006
+			energy = 0.52
+		"SNOW":
+			sky = sky.lerp(Color(0.78, 0.84, 0.90), 0.45)
+			fog = 0.007
+			energy = 0.78
+	Mats.paint_sky(menu_env, sky, ground)
+	menu_env.fog_enabled = true
+	menu_env.fog_density = fog
+	menu_env.fog_light_color = sky
+	if menu_sun:
+		menu_sun.light_energy = energy
+
+
 func _orbit_showroom() -> void:
 	if cam == null:
 		return
-	var a := menu_time * 0.32
-	cam.position = Vector3(sin(a) * 5.6, 1.55, cos(a) * 6.1)
-	cam.look_at(Vector3(0.0, 0.48, 0.0))
+	var a := menu_time * 0.22
+	cam.position = Vector3(sin(a) * 10.4, 2.35, cos(a) * 11.2)
+	cam.look_at(Vector3(0.0, 0.65, 0.0))
 
 
 func _process(_delta: float) -> void:

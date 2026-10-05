@@ -4,7 +4,8 @@ __pycache__/
 *.pyc
 shots/
 build/
-dist/
+dist/*
+!dist/CarSim3D.exe
 vendor/
 .godot/
 .cursor/

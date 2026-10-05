@@ -133,6 +133,7 @@ func _sync_features() -> void:
 	gfx_btn.text = "  G   Graphics: %s" % GameState.quality_name()
 	weather_btn.text = "  T   Weather: %s" % str(GameState.weather().get("name", "CLEAR"))
 	gun_btn.text = "  U   Guns: %s" % ("ON" if GameState.gun_enabled else "OFF")
+	apply_menu_settings()
 
 
 func _go_car_select() -> void:
@@ -173,6 +174,20 @@ func _start_roam() -> void:
 	_go_car_select()
 
 
+func _input(event: InputEvent) -> void:
+	if event.is_echo() or not event.is_pressed() or not (event is InputEventKey):
+		return
+	match (event as InputEventKey).physical_keycode:
+		KEY_G:
+			GameState.cycle_quality()
+			_sync_features()
+			get_viewport().set_input_as_handled()
+		KEY_T:
+			GameState.cycle_weather()
+			_sync_features()
+			get_viewport().set_input_as_handled()
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_echo() or not event.is_pressed() or not (event is InputEventKey):
 		return
@@ -202,12 +217,6 @@ func _unhandled_input(event: InputEvent) -> void:
 			_sync_features()
 		KEY_F:
 			GameState.freeplay_split = not GameState.freeplay_split
-			_sync_features()
-		KEY_G:
-			GameState.cycle_quality()
-			_sync_features()
-		KEY_T:
-			GameState.cycle_weather()
 			_sync_features()
 		KEY_U:
 			GameState.gun_enabled = not GameState.gun_enabled

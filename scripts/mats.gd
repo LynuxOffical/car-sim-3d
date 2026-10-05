@@ -1,6 +1,9 @@
 class_name Mats
 extends RefCounted
 
+const GROUND_SHADER := preload("res://shaders/ground.gdshader")
+const ASPHALT_SHADER := preload("res://shaders/asphalt.gdshader")
+
 static var _cache: Dictionary = {}
 
 static func solid(col: Color, rough: float = 0.85, metal: float = 0.0) -> StandardMaterial3D:
@@ -11,7 +14,24 @@ static func solid(col: Color, rough: float = 0.85, metal: float = 0.0) -> Standa
 	m.albedo_color = col
 	m.roughness = rough
 	m.metallic = metal
+	m.specular_mode = BaseMaterial3D.SPECULAR_DISABLED if metal <= 0.001 else BaseMaterial3D.SPECULAR_SCHLICK_GGX
 	_cache[key] = m
+	return m
+
+
+static func ground(col: Color) -> ShaderMaterial:
+	var m := ShaderMaterial.new()
+	m.shader = GROUND_SHADER
+	m.set_shader_parameter("albedo", col)
+	return m
+
+
+static func asphalt(col: Color) -> ShaderMaterial:
+	var m := ShaderMaterial.new()
+	m.shader = ASPHALT_SHADER
+	m.set_shader_parameter("albedo", col)
+	m.set_shader_parameter("roughness", 0.72)
+	m.set_shader_parameter("wet", 0.0)
 	return m
 
 

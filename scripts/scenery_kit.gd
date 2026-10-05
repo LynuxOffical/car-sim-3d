@@ -84,28 +84,24 @@ const HOUSES: Array[String] = [
 ]
 
 
+static var _baked: Dictionary = {}
+
 static func spawn(parent: Node3D, path: String, pos: Vector3, yaw: float, scl: float, shadows: bool, vertex_color := true) -> void:
-	if path == "" or not ResourceLoader.exists(path):
-		return
-	var packed: PackedScene = load(path)
+	var packed := _baked_scene(path, shadows, vertex_color)
 	if packed == null:
 		return
 	var node: Node3D = packed.instantiate()
 	node.position = pos
 	node.rotation.y = yaw
 	node.scale = Vector3(scl, scl, scl)
-	_prep(node, shadows, vertex_color)
 	parent.add_child(node)
 
 
 static func spawn_fitted(parent: Node3D, path: String, pos: Vector3, yaw: float, target_h: float, max_foot: float, shadows: bool) -> void:
-	if path == "" or not ResourceLoader.exists(path):
-		return
-	var packed: PackedScene = load(path)
+	var packed := _baked_scene(path, shadows, false)
 	if packed == null:
 		return
 	var node: Node3D = packed.instantiate()
-	_prep(node, shadows, false)
 	var box := mesh_aabb(node, Transform3D.IDENTITY)
 	var h := maxf(box.size.y, 0.05)
 	var foot := maxf(box.size.x, box.size.z)
@@ -116,6 +112,27 @@ static func spawn_fitted(parent: Node3D, path: String, pos: Vector3, yaw: float,
 	node.rotation.y = yaw
 	node.position = Vector3(pos.x, pos.y - box.position.y * scl, pos.z)
 	parent.add_child(node)
+
+
+static func _baked_scene(path: String, shadows: bool, vertex_color: bool) -> PackedScene:
+	if path == "" or not ResourceLoader.exists(path):
+		return null
+	var key := "%s|%d|%d" % [path, 1 if shadows else 0, 1 if vertex_color else 0]
+	if _baked.has(key):
+		return _baked[key]
+	var packed: PackedScene = load(path)
+	if packed == null:
+		return null
+	var node: Node3D = packed.instantiate()
+	_prep(node, shadows, vertex_color)
+	var baked := PackedScene.new()
+	if baked.pack(node) != OK:
+		node.free()
+		_baked[key] = packed
+		return packed
+	node.free()
+	_baked[key] = baked
+	return baked
 
 
 static func mesh_aabb(n: Node, xform: Transform3D) -> AABB:
@@ -149,25 +166,34 @@ static func _prep(n: Node, shadows: bool, vertex_color: bool) -> void:
 		var mi := n as MeshInstance3D
 		mi.gi_mode = GeometryInstance3D.GI_MODE_DISABLED
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if shadows else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		mi.visibility_range_end = 420.0 if GameState.quality >= 2 else 280.0
+		mi.visibility_range_end_margin = 24.0
 		if mi.mesh:
 			for i in mi.mesh.get_surface_count():
 				var src: Material = mi.get_surface_override_material(i)
 				if src == null:
 					src = mi.mesh.surface_get_material(i)
+				var m: StandardMaterial3D
 				if src is StandardMaterial3D:
-					var m: StandardMaterial3D = (src as StandardMaterial3D).duplicate()
-					var painted := vertex_color and m.albedo_texture == null
-					m.vertex_color_use_as_albedo = painted
-					m.vertex_color_is_srgb = painted
-					m.transparency = BaseMaterial3D.TRANSPARENCY_DISABLED
-					m.metallic = minf(m.metallic, 0.12)
-					m.roughness = maxf(m.roughness, 0.42)
-					m.cull_mode = BaseMaterial3D.CULL_BACK
-					mi.set_surface_override_material(i, m)
+					m = (src as StandardMaterial3D).duplicate()
+				else:
+					m = StandardMaterial3D.new()
+					m.albedo_color = Color(0.42, 0.46, 0.40)
+					m.roughness = 0.72
+				var painted := vertex_color and m.albedo_texture == null
+				m.vertex_color_use_as_albedo = painted
+				m.vertex_color_is_srgb = painted
+				m.transparency = BaseMaterial3D.TRANSPARENCY_DISABLED
+				m.metallic = minf(m.metallic, 0.12)
+				m.roughness = maxf(m.roughness, 0.42)
+				m.cull_mode = BaseMaterial3D.CULL_BACK
+				mi.set_surface_override_material(i, m)
 	elif n is GeometryInstance3D:
 		var gi := n as GeometryInstance3D
 		gi.gi_mode = GeometryInstance3D.GI_MODE_DISABLED
 		gi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if shadows else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		gi.visibility_range_end = 420.0 if GameState.quality >= 2 else 280.0
+		gi.visibility_range_end_margin = 24.0
 	if n is CollisionObject3D:
 		n.collision_layer = 0
 		n.collision_mask = 0
