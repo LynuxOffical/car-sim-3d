@@ -1,0 +1,6 @@
+# Used only by `python setup.py bdist_apps` (Panda3D 1.11 Android packaging).
+# The panda3d wheels in vendor/android-wheels are Android ABIs, not pip-installable
+# on Windows; bdist_apps reads them from this find-links folder.
+-f vendor/android-wheels
+panda3d
+panda3d-gltf>=1.3

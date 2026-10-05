@@ -1,45 +1,33 @@
 # car-sim-3d
 
-A true 3D third-person car driving simulator written in Python with
-**Pygame** (window / input) and **PyOpenGL** (rendering). No 3D model
-files or textures required — everything is drawn from OpenGL primitives.
+Arcade circuit racer in **Godot 4.6**. Kenney car models, walled tracks, weather, gun combat, and Firebase / LAN multiplayer.
+
+The original **Panda3D** Python game is still in `main.py`. `main_classic.py` is the older Pygame + PyOpenGL renderer.
+
+## Play (Godot)
+
+Open `project.godot` in Godot 4.6, or run the Windows export:
+
+`dist/CarSim3D.exe` (built locally; not committed)
+
+### Menu
+
+1. Single player  
+2. Split screen (P1 arrows, P2 WASD)  
+3. Free play  
+4. Online (Firebase rooms)  
+5. Gun combat  
+6. Roam  
+
+L laps · O opponents · T weather · G graphics · U guns
+
+## Maps
+
+Meadow Circuit, Sunset Speedway, Alpine Run, Rockport City, Harbor District, Canyon Pass, Midnight Metro, Palm Coast, Foundry Loop, Volcano Ridge, Salt Flats, **Switchback Ridge**, **Lagoon Straits**.
 
 ## Setup
 
-```powershell
-python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
-```
+- Godot 4.6 + Windows export templates
+- Copy `firebase_config.example.json` to `firebase_config.json` for online play (do not commit secrets)
 
-## Run
-
-```powershell
-python main.py
-```
-
-## Controls
-
-| Key | Action |
-| --- | --- |
-| Up arrow | Accelerate |
-| Down arrow | Brake, then reverse |
-| Left / Right arrows | Steer (turning radius depends on speed) |
-| Esc | Quit |
-
-## What's inside
-
-Everything lives in a single `main.py`, organized into classes:
-
-- `Car` — rectangular-prism body plus arcade physics: acceleration,
-  braking, reverse, rolling friction, quadratic drag, and speed-dependent
-  steering.
-- `ChaseCamera` — third-person camera that exponentially smooths toward a
-  point behind and above the car (`gluLookAt` builds the view matrix).
-- `World` — a snapping "infinite" ground grid and randomly scattered
-  obstacle cubes (fixed seed, so the world is the same every run).
-- `Game` — window creation, the projection matrix (`gluPerspective`),
-  event handling, and the main loop.
-
-The comments in `main.py` explain how the OpenGL **PROJECTION** and
-**MODELVIEW** matrices are used in the render loop.
+Cars and scenery: CC0 [Kenney Car Kit](https://kenney.nl/assets/car-kit) and Kenney city / nature packs.
