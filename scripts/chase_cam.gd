@@ -68,11 +68,21 @@ func _look() -> void:
 	var h := car.heading
 	match GameState.camera_mode:
 		"HOOD":
-			look_at(car.global_position + _forward(h) * 18.0 + Vector3.UP * 1.0, Vector3.UP)
+			_safe_look(car.global_position + _forward(h) * 18.0 + Vector3.UP * 1.0)
 		"TOP":
 			rotation = Vector3(deg_to_rad(-90.0), 0.0, 0.0)
 		_:
-			look_at(car.global_position + Vector3.UP * 1.2, Vector3.UP)
+			_safe_look(car.global_position + Vector3.UP * 1.2)
+
+
+func _safe_look(to: Vector3) -> void:
+	if global_position.distance_squared_to(to) < 0.0008:
+		return
+	var dir := (to - global_position).normalized()
+	var up := Vector3.UP
+	if absf(dir.dot(up)) > 0.995:
+		up = Vector3.FORWARD
+	look_at(to, up)
 
 
 func _physics_process(delta: float) -> void:

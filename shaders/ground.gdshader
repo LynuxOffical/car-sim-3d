@@ -7,5 +7,4 @@ void fragment() {
 	ALBEDO = albedo.rgb;
 	ROUGHNESS = 0.95;
 	METALLIC = 0.0;
-	SPECULAR = 0.0;
 }

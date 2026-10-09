@@ -21,28 +21,46 @@ var started := false
 
 var _http: HTTPRequest
 var _poll: HTTPRequest
-var _write: HTTPRequest
+var _writers: Array[HTTPRequest] = []
+var _writer_busy: Array[bool] = []
 var _poll_acc := 0.0
 var _pose_acc := 0.0
 var _pending: Dictionary = {}
-var _write_busy := false
 var _poll_busy := false
 var _auth_done := false
 var _last_status := 0
+var _sse: HTTPClient
+var _sse_phase := 0
+var _sse_buf := ""
+var _sse_host := ""
+var _sse_path := ""
+var _sse_tls := true
+var _sse_ok := false
+var _sse_retry := 0.0
 
 func _ready() -> void:
 	_load_cfg()
 	_http = HTTPRequest.new()
 	_poll = HTTPRequest.new()
-	_write = HTTPRequest.new()
-	_http.timeout = 8.0
-	_poll.timeout = 6.0
-	_write.timeout = 4.0
+	_http.timeout = 5.0
+	_poll.timeout = 4.0
 	add_child(_http)
 	add_child(_poll)
-	add_child(_write)
 	_poll.request_completed.connect(_on_poll)
-	_write.request_completed.connect(_on_write)
+	for i in 4:
+		var w := HTTPRequest.new()
+		w.timeout = 2.0
+		add_child(w)
+		_writers.append(w)
+		_writer_busy.append(false)
+		var idx := i
+		w.request_completed.connect(func(_a, _b, _c, _d): _writer_busy[idx] = false)
+	call_deferred("_boot")
+
+
+func _boot() -> void:
+	if configured:
+		await connect_auth()
 
 
 func _load_cfg() -> void:
@@ -107,35 +125,31 @@ func _guest() -> void:
 func host_room() -> bool:
 	if not await connect_auth():
 		return false
-	for _i in 8:
-		var code := str(randi_range(10000, 99999))
-		var existing: Variant = await _rest(HTTPClient.METHOD_GET, "rooms/" + code)
-		if existing != null:
-			continue
-		var payload := {
-			"meta": {
-				"host": uid,
-				"created": int(Time.get_unix_time_from_system()),
-				"started": false,
-				"map_idx": GameState.race_island if GameState.race_island >= 0 else 0,
-			},
-			"players": {},
-			"chat": {},
-		}
-		error = ""
-		await _rest(HTTPClient.METHOD_PUT, "rooms/" + code, payload)
-		if _last_status >= 400:
-			continue
-		room = code
-		hosting = true
-		online = true
-		started = false
-		meta = payload["meta"]
-		status = "ROOM %s" % room
-		_push_lobby()
-		return true
-	error = "Could not allocate a room code"
-	return false
+	var code := "%05d" % ((int(Time.get_unix_time_from_system()) * 17 + randi()) % 100000)
+	var payload := {
+		"meta": {
+			"host": uid,
+			"created": int(Time.get_unix_time_from_system()),
+			"started": false,
+			"map_idx": GameState.race_island if GameState.race_island >= 0 else 0,
+		},
+		"players": {},
+		"chat": {},
+	}
+	error = ""
+	await _rest(HTTPClient.METHOD_PUT, "rooms/" + code, payload)
+	if _last_status >= 400:
+		error = "Could not allocate a room code"
+		return false
+	room = code
+	hosting = true
+	online = true
+	started = false
+	meta = payload["meta"]
+	status = "ROOM %s" % room
+	_push_lobby()
+	_open_stream()
+	return true
 
 
 func join_room(code: String) -> bool:
@@ -155,6 +169,7 @@ func join_room(code: String) -> bool:
 	_ingest(data)
 	status = "ROOM %s" % room
 	_push_lobby()
+	_open_stream()
 	return true
 
 
@@ -163,12 +178,13 @@ func mark_started() -> void:
 		return
 	meta["started"] = true
 	started = true
-	await _rest(HTTPClient.METHOD_PUT, "rooms/%s/meta" % room, meta)
+	_fire_and_forget(HTTPClient.METHOD_PUT, "rooms/%s/meta" % room, meta)
 
 
 func leave() -> void:
 	var old_room := room
 	var old_uid := uid
+	_close_stream()
 	room = ""
 	online = false
 	hosting = false
@@ -213,25 +229,146 @@ func _push_lobby() -> void:
 		"s": 0.0,
 		"lobby": true,
 	})
+	_flush_write()
 
 
 func _process(delta: float) -> void:
+	if _sse != null:
+		_poll_sse()
+	elif online and room != "" and _sse_retry > 0.0:
+		_sse_retry -= delta
+		if _sse_retry <= 0.0:
+			_open_stream()
 	if not online or room == "":
 		return
 	_poll_acc += delta
 	_pose_acc += delta
-	if _poll_acc >= 0.09 and not _poll_busy:
+	if not _sse_ok and _poll_acc >= 0.08 and not _poll_busy:
 		_poll_acc = 0.0
 		_begin_poll()
-	if _pose_acc >= 0.05 and not _write_busy and not _pending.is_empty():
+	if _pose_acc >= 0.033 and not _pending.is_empty():
 		_pose_acc = 0.0
-		_begin_write()
+		_flush_write()
+
+
+func _open_stream() -> void:
+	_close_stream()
+	if db_url == "" or room == "":
+		return
+	var rest := db_url.trim_prefix("https://").trim_prefix("http://")
+	_sse_tls = db_url.begins_with("https")
+	_sse_host = rest.split("/")[0]
+	_sse_path = "/rooms/%s.json" % room
+	if token != "":
+		_sse_path += "?auth=" + token.uri_encode()
+	_sse = HTTPClient.new()
+	var tls: TLSOptions = TLSOptions.client() if _sse_tls else null
+	var err := _sse.connect_to_host(_sse_host, 443 if _sse_tls else 80, tls)
+	if err != OK:
+		_sse = null
+		_sse_ok = false
+		_sse_retry = 0.4
+		return
+	_sse_phase = 1
+	_sse_buf = ""
+	_sse_ok = false
+
+
+func _close_stream() -> void:
+	if _sse != null:
+		_sse.close()
+	_sse = null
+	_sse_phase = 0
+	_sse_buf = ""
+	_sse_ok = false
+
+
+func _poll_sse() -> void:
+	if _sse == null:
+		return
+	_sse.poll()
+	var st := _sse.get_status()
+	if st == HTTPClient.STATUS_RESOLVING or st == HTTPClient.STATUS_CONNECTING:
+		return
+	if st == HTTPClient.STATUS_CONNECTED and _sse_phase == 1:
+		_sse.request(HTTPClient.METHOD_GET, _sse_path, PackedStringArray([
+			"Accept: text/event-stream",
+			"Cache-Control: no-cache",
+		]))
+		_sse_phase = 2
+		return
+	if st == HTTPClient.STATUS_BODY:
+		if not _sse_ok and _sse.has_response() and _sse.get_response_code() == 200:
+			_sse_ok = true
+		var chunk := _sse.read_response_body_chunk()
+		if chunk.size() > 0:
+			_sse_buf += chunk.get_string_from_utf8()
+			_drain_sse()
+		return
+	if st == HTTPClient.STATUS_CONNECTION_ERROR or st == HTTPClient.STATUS_CANT_CONNECT or st == HTTPClient.STATUS_CANT_RESOLVE or st == HTTPClient.STATUS_TLS_HANDSHAKE_ERROR or st == HTTPClient.STATUS_DISCONNECTED:
+		_close_stream()
+		if online and room != "":
+			_sse_retry = 0.35
+
+
+func _drain_sse() -> void:
+	while true:
+		var cut := _sse_buf.find("\n\n")
+		if cut < 0:
+			if _sse_buf.length() > 200000:
+				_sse_buf = _sse_buf.substr(_sse_buf.length() - 8000)
+			return
+		var block := _sse_buf.substr(0, cut)
+		_sse_buf = _sse_buf.substr(cut + 2)
+		var ev := "put"
+		var data_s := ""
+		for line in block.split("\n"):
+			if line.begins_with("event:"):
+				ev = line.substr(6).strip_edges()
+			elif line.begins_with("data:"):
+				data_s += line.substr(5).strip_edges()
+		if ev == "keep-alive" or data_s == "" or data_s == "null":
+			continue
+		if ev == "put" or ev == "patch":
+			_apply_sse(ev, data_s)
+
+
+func _apply_sse(_ev: String, raw: String) -> void:
+	var parsed: Variant = JSON.parse_string(raw)
+	if typeof(parsed) != TYPE_DICTIONARY:
+		return
+	var path := str(parsed.get("path", "/"))
+	var data: Variant = parsed.get("data")
+	if path == "/" or path == "":
+		if typeof(data) == TYPE_DICTIONARY:
+			_ingest(data)
+			room_updated.emit()
+		return
+	var cur := {"players": players.duplicate(true), "meta": meta.duplicate(true), "chat": {}}
+	var node: Variant = cur
+	var parts := path.trim_prefix("/").split("/")
+	for i in parts.size():
+		var key := parts[i]
+		if i == parts.size() - 1:
+			if typeof(node) != TYPE_DICTIONARY:
+				return
+			if data == null:
+				(node as Dictionary).erase(key)
+			else:
+				(node as Dictionary)[key] = data
+		else:
+			if typeof(node) != TYPE_DICTIONARY:
+				return
+			if not (node as Dictionary).has(key) or typeof((node as Dictionary)[key]) != TYPE_DICTIONARY:
+				(node as Dictionary)[key] = {}
+			node = (node as Dictionary)[key]
+	_ingest(cur)
+	room_updated.emit()
 
 
 func _begin_poll() -> void:
 	_poll_busy = true
-	var url := _url("rooms/" + room)
-	var err := _poll.request(url)
+	var err := _poll.request(_url("rooms/" + room))
 	if err != OK:
 		_poll_busy = false
 
@@ -249,19 +386,21 @@ func _on_poll(_result: int, code: int, _headers: PackedStringArray, body: Packed
 		room_updated.emit()
 
 
-func _begin_write() -> void:
+func _flush_write() -> void:
 	if _pending.is_empty() or uid == "" or room == "":
 		return
-	_write_busy = true
-	var url := _url("rooms/%s/players/%s" % [room, uid])
-	var body := JSON.stringify(_pending)
-	var err := _write.request(url, PackedStringArray(["Content-Type: application/json"]), HTTPClient.METHOD_PUT, body)
-	if err != OK:
-		_write_busy = false
-
-
-func _on_write(_result: int, _code: int, _headers: PackedStringArray, _body: PackedByteArray) -> void:
-	_write_busy = false
+	for i in _writers.size():
+		if _writer_busy[i]:
+			continue
+		_writer_busy[i] = true
+		var url := _url("rooms/%s/players/%s" % [room, uid])
+		var body := JSON.stringify(_pending)
+		var err := _writers[i].request(url, PackedStringArray(["Content-Type: application/json"]), HTTPClient.METHOD_PUT, body)
+		if err != OK:
+			_writer_busy[i] = false
+			continue
+		_pending = {}
+		return
 
 
 func _ingest(data: Dictionary) -> void:
@@ -290,6 +429,7 @@ func _rest(method: int, path: String, payload: Variant = null) -> Variant:
 	var err := _http.request(url, headers, method, body)
 	if err != OK:
 		error = "HTTP request failed"
+		_last_status = 0
 		return null
 	var done: Array = await _http.request_completed
 	var code: int = done[1]
@@ -301,7 +441,7 @@ func _rest(method: int, path: String, payload: Variant = null) -> Variant:
 			error = "Database rules blocked the room. Publish firebase_rules.json."
 		return null
 	if raw.is_empty():
-		return null
+		return {}
 	return JSON.parse_string(raw.get_string_from_utf8())
 
 

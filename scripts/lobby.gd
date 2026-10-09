@@ -85,7 +85,7 @@ func _refresh() -> void:
 func _start() -> void:
 	if _launching or not Net.hosting:
 		return
-	await Net.mark_started()
+	Net.mark_started()
 	_go_drive()
 
 

@@ -67,6 +67,8 @@ func show_preview() -> bool:
 
 
 func overlay_dim() -> Color:
+	if chrome_kind() == "wanted":
+		return Color(0, 0, 0, 0)
 	if world_kind() == "track":
 		if header_text() == "CHOOSE TRACK":
 			return Color(0, 0, 0, 0.12)
@@ -92,6 +94,7 @@ func _build_world() -> void:
 	vp.handle_input_locally = false
 	vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	vp.transparent_bg = false
+	vp.use_taa = false
 	wrap.add_child(vp)
 	var world := Node3D.new()
 	vp.add_child(world)
@@ -115,11 +118,20 @@ func _build_world() -> void:
 		env.glow_enabled = true
 		env.glow_intensity = 0.05
 	elif world_kind() == "track":
-		Mats.paint_sky(env, Color(0.66, 0.80, 0.95), Color(0.29, 0.50, 0.23))
-		env.fog_enabled = true
-		env.fog_density = 0.00105
-		env.fog_light_color = Color(0.70, 0.80, 0.90)
-		env.fog_sky_affect = 0.45
+		if chrome_kind() == "wanted":
+			Mats.paint_sky(env, Color(0.18, 0.16, 0.14), Color(0.08, 0.08, 0.09))
+			env.tonemap_exposure = 0.82
+			env.fog_enabled = true
+			env.fog_density = 0.0045
+			env.fog_light_color = Color(0.42, 0.32, 0.18)
+			env.fog_sky_affect = 0.55
+			env.glow_intensity = 0.04
+		else:
+			Mats.paint_sky(env, Color(0.66, 0.80, 0.95), Color(0.29, 0.50, 0.23))
+			env.fog_enabled = true
+			env.fog_density = 0.00105
+			env.fog_light_color = Color(0.70, 0.80, 0.90)
+			env.fog_sky_affect = 0.45
 	else:
 		Mats.paint_sky(env, Color(0.42, 0.48, 0.52), Color(0.23, 0.42, 0.18))
 		env.fog_enabled = true
@@ -138,9 +150,14 @@ func _build_world() -> void:
 		sun.light_energy = 1.05
 		sun.light_color = Color(0.96, 0.95, 0.92)
 	elif world_kind() == "track":
-		sun.rotation_degrees = Vector3(-52, 38, 0)
-		sun.light_energy = 1.15
-		sun.light_color = Color(1.0, 0.95, 0.88)
+		if chrome_kind() == "wanted":
+			sun.rotation_degrees = Vector3(-18, 48, 0)
+			sun.light_energy = 0.72
+			sun.light_color = Color(1.0, 0.72, 0.42)
+		else:
+			sun.rotation_degrees = Vector3(-52, 38, 0)
+			sun.light_energy = 1.15
+			sun.light_color = Color(1.0, 0.95, 0.88)
 	else:
 		sun.rotation_degrees = Vector3(-50, 20, 0)
 		sun.light_energy = 0.9
@@ -212,7 +229,7 @@ func _build_world() -> void:
 		_orbit_camera()
 	else:
 		cam.position = Vector3(6.4, 2.2, 8.4)
-		cam.look_at(Vector3(0.2, 0.85, 0.2))
+		_safe_look(cam, Vector3(0.2, 0.85, 0.2))
 
 
 func _track_index() -> int:
@@ -234,6 +251,9 @@ func rebuild_track(idx: int) -> void:
 	if menu_env:
 		var sky: Color = land.theme.get("sky", Color(0.48, 0.62, 0.78))
 		var ground: Color = land.theme.get("ground", Color(0.29, 0.50, 0.23))
+		if chrome_kind() == "wanted":
+			sky = sky.lerp(Color(0.16, 0.12, 0.10), 0.62)
+			ground = ground.lerp(Color(0.08, 0.07, 0.07), 0.45)
 		Mats.paint_sky(menu_env, sky, ground)
 		menu_env.fog_light_color = sky
 	_orbit_camera()
@@ -243,12 +263,38 @@ func rebuild_track(idx: int) -> void:
 func _orbit_camera() -> void:
 	if cam == null or land == null:
 		return
+	if chrome_kind() == "wanted":
+		var spawn := land.spawn_for(0)
+		var h := land.spawn_yaw
+		var a := menu_time * 0.10
+		var back := Vector3(sin(h), 0.0, cos(h))
+		var side := Vector3(cos(h), 0.0, -sin(h))
+		cam.far = 1800.0
+		cam.fov = 46.0
+		cam.global_position = spawn + back * (8.6 + sin(a) * 0.55) + side * (2.6 + cos(a) * 0.35) + Vector3(0, 2.05, 0)
+		_safe_look(cam, spawn + Vector3(0, 0.82, 0))
+		if preview_host:
+			preview_host.global_position = spawn
+			preview_host.rotation.y = h
+		return
 	var a := menu_time * 0.15
 	var c := land.track_center()
 	var r := maxf(80.0, land.track_span() * 0.72)
 	cam.far = maxf(5000.0, r * 16.0)
 	cam.position = Vector3(c.x + sin(a) * r, r * 0.38, c.z + cos(a) * r)
-	cam.look_at(c)
+	_safe_look(cam, c)
+
+
+func _safe_look(node: Node3D, to: Vector3) -> void:
+	if node == null:
+		return
+	if node.global_position.distance_squared_to(to) < 0.0008:
+		return
+	var dir := (to - node.global_position).normalized()
+	var up := Vector3.UP
+	if absf(dir.dot(up)) > 0.995:
+		up = Vector3.FORWARD
+	node.look_at(to, up)
 
 
 func _grass(world: Node3D) -> void:
@@ -303,12 +349,60 @@ func _hill(world: Node3D, pos: Vector3, size: Vector3) -> void:
 	world.add_child(h)
 
 
+func _wanted_chrome() -> void:
+	var gold := Color(0.93, 0.76, 0.22)
+	var top := ColorRect.new()
+	top.color = gold
+	top.set_anchors_preset(PRESET_TOP_WIDE)
+	top.offset_bottom = 3
+	top.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(top)
+	var bot := ColorRect.new()
+	bot.color = gold
+	bot.set_anchors_preset(PRESET_BOTTOM_WIDE)
+	bot.offset_top = -3
+	bot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(bot)
+	title = UiKit.shadow_label(header_text(), header_px(), Color(0.98, 0.96, 0.88))
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	title.set_anchors_preset(PRESET_TOP_WIDE)
+	title.offset_left = 48
+	title.offset_right = -48
+	title.offset_top = 18
+	title.offset_bottom = 70
+	add_child(title)
+	var rule := ColorRect.new()
+	rule.color = gold
+	rule.position = Vector2(48, 72)
+	rule.size = Vector2(280, 2)
+	rule.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(rule)
+	splash = UiKit.shadow_label("MOST WANTED  //  RETRO-FUTURE", 14, gold)
+	splash.position = Vector2(48, 78)
+	add_child(splash)
+	subtitle = UiKit.shadow_label("", 16, Color(0.70, 0.84, 0.88))
+	subtitle.position = Vector2(48, 100)
+	add_child(subtitle)
+	status = UiKit.shadow_label("", 14, Color(0.62, 0.66, 0.70))
+	status.position = Vector2(48, 122)
+	add_child(status)
+
+
 func _build_chrome() -> void:
 	var dim := ColorRect.new()
 	dim.set_anchors_preset(PRESET_FULL_RECT)
 	dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	dim.color = overlay_dim()
+	if chrome_kind() == "wanted":
+		var mat := ShaderMaterial.new()
+		mat.shader = preload("res://shaders/mw_grade.gdshader")
+		dim.material = mat
+		dim.color = Color.WHITE
+	else:
+		dim.color = overlay_dim()
 	add_child(dim)
+	if chrome_kind() == "wanted":
+		_wanted_chrome()
+		return
 	if chrome_kind() == "python":
 		var topbar := Panel.new()
 		var sb := StyleBoxFlat.new()
@@ -448,6 +542,9 @@ func _apply_menu_weather() -> void:
 	var w: Dictionary = GameState.weather()
 	var sky: Color = land.theme.get("sky", Color(0.66, 0.80, 0.95)) if land else Color(0.66, 0.80, 0.95)
 	var ground: Color = land.theme.get("ground", Color(0.29, 0.50, 0.23)) if land else Color(0.29, 0.50, 0.23)
+	if chrome_kind() == "wanted":
+		sky = sky.lerp(Color(0.16, 0.12, 0.10), 0.62)
+		ground = ground.lerp(Color(0.08, 0.07, 0.07), 0.45)
 	var name := str(w.get("name", "CLEAR"))
 	var fog := 0.00105
 	var energy := 1.15
@@ -477,7 +574,7 @@ func _orbit_showroom() -> void:
 		return
 	var a := menu_time * 0.22
 	cam.position = Vector3(sin(a) * 10.4, 2.35, cos(a) * 11.2)
-	cam.look_at(Vector3(0.0, 0.65, 0.0))
+	_safe_look(cam, Vector3(0.0, 0.65, 0.0))
 
 
 func _process(_delta: float) -> void:
@@ -486,7 +583,7 @@ func _process(_delta: float) -> void:
 		_orbit_camera()
 	elif world_kind() == "showroom":
 		_orbit_showroom()
-	if preview_host and show_preview():
+	if preview_host and show_preview() and chrome_kind() != "wanted":
 		preview_host.rotation.y += _delta * 0.18
 	if splash and splash.visible:
 		var pulse := 1.0 + sin(Time.get_ticks_msec() * 0.006) * 0.04

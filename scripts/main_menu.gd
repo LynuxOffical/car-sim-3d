@@ -8,17 +8,19 @@ var gfx_btn: Button
 var weather_btn: Button
 var gun_btn: Button
 var tag_lab: Label
+var _items: Array[Button] = []
+var _sel := 0
 
 func header_text() -> String:
-	return "car-sim-3d"
+	return "CAR-SIM-3D"
 
 
 func header_px() -> int:
-	return 40
+	return 36
 
 
 func chrome_kind() -> String:
-	return "python"
+	return "wanted"
 
 
 func world_kind() -> String:
@@ -26,114 +28,143 @@ func world_kind() -> String:
 
 
 func show_preview() -> bool:
-	return false
+	return true
 
 
 func build_ui() -> void:
-	var wrap := MarginContainer.new()
-	wrap.set_anchors_preset(PRESET_FULL_RECT)
-	wrap.offset_left = 48
-	wrap.offset_right = -48
-	wrap.offset_top = 96
-	wrap.offset_bottom = -28
-	add_child(wrap)
-	var root := VBoxContainer.new()
-	root.add_theme_constant_override("separation", 16)
-	wrap.add_child(root)
-	var streak := ""
-	if GameState.win_streak > 0:
-		streak = "   ·   win streak x%d" % GameState.win_streak
-	tag_lab = UiKit.shadow_label("13 circuits  ·  kenney cars  ·  first across the line wins%s" % streak, 16, Color(0.78, 0.82, 0.88))
-	tag_lab.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	root.add_child(tag_lab)
-
-	var cols := HBoxContainer.new()
-	cols.alignment = BoxContainer.ALIGNMENT_CENTER
-	cols.add_theme_constant_override("separation", 28)
-	cols.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	root.add_child(cols)
-
-	var play := UiKit.panel()
-	play.custom_minimum_size = Vector2(460, 0)
-	cols.add_child(play)
-	var play_col := VBoxContainer.new()
-	play_col.add_theme_constant_override("separation", 8)
-	play.add_child(play_col)
-	var play_h := UiKit.shadow_label("PLAY", 14, Color(0.55, 0.72, 0.82))
-	play_col.add_child(play_h)
-	_add(play_col, UiKit.menu_btn("1   Single player", Color(0.42, 0.86, 0.52), 20, 400), _start_single)
-	_add(play_col, UiKit.menu_btn("2   Split screen race", Color(0.42, 0.72, 1.0), 20, 400), _start_split)
-	_add(play_col, UiKit.menu_btn("3   Free play", Color(0.95, 0.72, 0.38), 20, 400), _start_free)
-	_add(play_col, UiKit.menu_btn("4   Online multiplayer", Color(0.38, 0.86, 0.92), 18, 400), func() -> void:
+	var rail := VBoxContainer.new()
+	rail.set_anchors_preset(PRESET_LEFT_WIDE)
+	rail.offset_left = 40
+	rail.offset_right = 500
+	rail.offset_top = 138
+	rail.offset_bottom = -86
+	rail.add_theme_constant_override("separation", 2)
+	add_child(rail)
+	_mw(rail, "QUICK RACE", _start_single)
+	_mw(rail, "SPLIT SCREEN", _start_split)
+	_mw(rail, "FREE ROAM", _start_free)
+	_mw(rail, "MULTIPLAYER", func() -> void:
 		get_tree().change_scene_to_file("res://scenes/mp_menu.tscn")
 	)
-	_add(play_col, UiKit.menu_btn("5   Gun combat", Color(0.95, 0.38, 0.32), 18, 400), _start_guns)
-	_add(play_col, UiKit.menu_btn("6   Roam the world", Color(0.55, 0.86, 0.55), 18, 400), _start_roam)
-	_add(play_col, UiKit.menu_btn("N   LAN multiplayer", Color(0.55, 0.82, 0.78), 16, 400), func() -> void:
+	_mw(rail, "GUN COMBAT", _start_guns)
+	_mw(rail, "WORLD TOUR", _start_roam)
+	_mw(rail, "LAN PARTY", func() -> void:
 		get_tree().change_scene_to_file("res://scenes/lan_menu.tscn")
 	)
+	_mw(rail, "OPTIONS", func() -> void:
+		get_tree().change_scene_to_file("res://scenes/options.tscn")
+	)
+	_mw(rail, "QUIT", func() -> void:
+		get_tree().quit()
+	)
+	_paint_sel()
 
-	var opt := UiKit.panel()
-	opt.custom_minimum_size = Vector2(460, 0)
-	cols.add_child(opt)
-	var opt_col := VBoxContainer.new()
-	opt_col.add_theme_constant_override("separation", 8)
-	opt.add_child(opt_col)
-	var opt_h := UiKit.shadow_label("SETTINGS", 14, Color(0.55, 0.72, 0.82))
-	opt_col.add_child(opt_h)
-	laps_btn = UiKit.menu_btn("", Color(0.92, 0.82, 0.38), 16, 400)
-	opp_btn = UiKit.menu_btn("", Color(0.92, 0.82, 0.38), 16, 400)
-	police_btn = UiKit.menu_btn("", Color(0.55, 0.75, 1.0), 16, 400)
-	fpsplit_btn = UiKit.menu_btn("", Color(0.55, 0.75, 1.0), 16, 400)
-	gfx_btn = UiKit.menu_btn("", Color(0.78, 0.55, 0.95), 16, 400)
-	weather_btn = UiKit.menu_btn("", Color(0.45, 0.78, 0.95), 16, 400)
-	gun_btn = UiKit.menu_btn("", Color(0.95, 0.48, 0.38), 16, 400)
-	_add(opt_col, laps_btn, func() -> void:
+	var card := UiKit.mw_panel()
+	card.set_anchors_preset(PRESET_BOTTOM_RIGHT)
+	card.anchor_left = 1.0
+	card.anchor_top = 1.0
+	card.offset_left = -420
+	card.offset_top = -236
+	card.offset_right = -36
+	card.offset_bottom = -28
+	add_child(card)
+	var opt := VBoxContainer.new()
+	opt.add_theme_constant_override("separation", 2)
+	card.add_child(opt)
+	var head := UiKit.shadow_label("TRANSMISSION", 12, UiKit.GOLD())
+	opt.add_child(head)
+	laps_btn = UiKit.mw_btn("", false, 360)
+	opp_btn = UiKit.mw_btn("", false, 360)
+	police_btn = UiKit.mw_btn("", false, 360)
+	fpsplit_btn = UiKit.mw_btn("", false, 360)
+	gfx_btn = UiKit.mw_btn("", false, 360)
+	weather_btn = UiKit.mw_btn("", false, 360)
+	gun_btn = UiKit.mw_btn("", false, 360)
+	for b in [laps_btn, opp_btn, police_btn, fpsplit_btn, gfx_btn, weather_btn, gun_btn]:
+		b.custom_minimum_size = Vector2(360, 26)
+		b.add_theme_font_size_override("font_size", 14)
+	_add(opt, laps_btn, func() -> void:
 		GameState.cycle_laps()
 		_sync_features()
 	)
-	_add(opt_col, opp_btn, func() -> void:
+	_add(opt, opp_btn, func() -> void:
 		GameState.cycle_opponents()
 		_sync_features()
 	)
-	_add(opt_col, police_btn, func() -> void:
+	_add(opt, police_btn, func() -> void:
 		GameState.police_enabled = not GameState.police_enabled
 		_sync_features()
 	)
-	_add(opt_col, fpsplit_btn, func() -> void:
+	_add(opt, fpsplit_btn, func() -> void:
 		GameState.freeplay_split = not GameState.freeplay_split
 		_sync_features()
 	)
-	_add(opt_col, gfx_btn, func() -> void:
+	_add(opt, gfx_btn, func() -> void:
 		GameState.cycle_quality()
 		_sync_features()
 	)
-	_add(opt_col, weather_btn, func() -> void:
+	_add(opt, weather_btn, func() -> void:
 		GameState.cycle_weather()
 		_sync_features()
 	)
-	_add(opt_col, gun_btn, func() -> void:
+	_add(opt, gun_btn, func() -> void:
 		GameState.gun_enabled = not GameState.gun_enabled
 		_sync_features()
 	)
-	_add(opt_col, UiKit.menu_btn("Options", Color(0.7, 0.74, 0.78), 16, 400), func() -> void:
-		get_tree().change_scene_to_file("res://scenes/options.tscn")
-	)
-	var hint := UiKit.shadow_label("keys 1-6  ·  C camera in race  ·  split: P1 arrows  P2 WASD  ·  ESC quit", 14, Color(0.62, 0.66, 0.72))
-	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	root.add_child(hint)
+
+	var streak := ""
+	if GameState.win_streak > 0:
+		streak = "   WIN STREAK x%d" % GameState.win_streak
+	tag_lab = UiKit.shadow_label("1-9 SELECT   ENTER CONFIRM   ESC QUIT%s" % streak, 13, Color(0.62, 0.66, 0.70))
+	tag_lab.set_anchors_preset(PRESET_BOTTOM_WIDE)
+	tag_lab.offset_left = 48
+	tag_lab.offset_right = -48
+	tag_lab.offset_top = -26
+	tag_lab.offset_bottom = -6
+	add_child(tag_lab)
 	_sync_features()
 
 
+func _mw(parent: Control, text: String, cb: Callable) -> void:
+	var idx := _items.size()
+	var b := UiKit.mw_btn("%d   %s" % [idx + 1, text], false, 440)
+	b.pressed.connect(func() -> void:
+		_sel = idx
+		_paint_sel()
+		cb.call()
+	)
+	parent.add_child(b)
+	_items.append(b)
+	b.set_meta("mw_cb", cb)
+
+
+func _paint_sel() -> void:
+	for i in _items.size():
+		UiKit.mw_style(_items[i], i == _sel)
+
+
+func _activate() -> void:
+	if _sel < 0 or _sel >= _items.size():
+		return
+	var cb: Variant = _items[_sel].get_meta("mw_cb")
+	if cb is Callable:
+		(cb as Callable).call()
+
+
 func _sync_features() -> void:
-	laps_btn.text = "  L   Laps: %d" % GameState.total_laps()
-	opp_btn.text = "  O   Opponents: %d" % GameState.opponent_count()
-	police_btn.text = "  P   Free-play police: %s" % ("ON" if GameState.police_enabled else "OFF")
-	fpsplit_btn.text = "  F   Free-play split: %s" % ("ON" if GameState.freeplay_split else "OFF")
-	gfx_btn.text = "  G   Graphics: %s" % GameState.quality_name()
-	weather_btn.text = "  T   Weather: %s" % str(GameState.weather().get("name", "CLEAR"))
-	gun_btn.text = "  U   Guns: %s" % ("ON" if GameState.gun_enabled else "OFF")
+	laps_btn.text = "LAPS            %d" % GameState.total_laps()
+	opp_btn.text = "FIELD           %d" % GameState.opponent_count()
+	police_btn.text = "POLICE          %s" % ("ON" if GameState.police_enabled else "OFF")
+	fpsplit_btn.text = "FREE-PLAY SPLIT %s" % ("ON" if GameState.freeplay_split else "OFF")
+	gfx_btn.text = "GRAPHICS        %s" % GameState.quality_name()
+	weather_btn.text = "WEATHER         %s" % str(GameState.weather().get("name", "CLEAR"))
+	gun_btn.text = "WEAPONS         %s" % ("ON" if GameState.gun_enabled else "OFF")
 	apply_menu_settings()
+	if subtitle:
+		var car: Dictionary = GameState.selected_car()
+		subtitle.text = "%s   ·   BLACKLIST OPEN" % str(car.get("name", "RACER"))
+	if status:
+		status.text = "13 CIRCUITS   ·   KENNEY GARAGE   ·   FIREBASE / LAN"
 
 
 func _go_car_select() -> void:
@@ -192,6 +223,14 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_echo() or not event.is_pressed() or not (event is InputEventKey):
 		return
 	match (event as InputEventKey).physical_keycode:
+		KEY_UP, KEY_W:
+			_sel = posmod(_sel - 1, _items.size())
+			_paint_sel()
+		KEY_DOWN, KEY_S:
+			_sel = posmod(_sel + 1, _items.size())
+			_paint_sel()
+		KEY_ENTER, KEY_KP_ENTER, KEY_SPACE:
+			_activate()
 		KEY_1:
 			_start_single()
 		KEY_2:
@@ -204,6 +243,12 @@ func _unhandled_input(event: InputEvent) -> void:
 			_start_guns()
 		KEY_6:
 			_start_roam()
+		KEY_7:
+			get_tree().change_scene_to_file("res://scenes/lan_menu.tscn")
+		KEY_8:
+			get_tree().change_scene_to_file("res://scenes/options.tscn")
+		KEY_9:
+			get_tree().quit()
 		KEY_N:
 			get_tree().change_scene_to_file("res://scenes/lan_menu.tscn")
 		KEY_L:

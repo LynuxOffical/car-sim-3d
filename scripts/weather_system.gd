@@ -41,7 +41,7 @@ func _particles(col: Color, amount: int, vel: Vector3, size: float) -> GPUPartic
 	mat.initial_velocity_max = vel.length() * 1.2
 	mat.gravity = Vector3.ZERO
 	mat.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
-	mat.emission_box_extents = Vector3(22, 10, 22)
+	mat.emission_shape_scale = Vector3(22, 10, 22)
 	mat.color = col
 	p.process_material = mat
 	var draw := QuadMesh.new()
