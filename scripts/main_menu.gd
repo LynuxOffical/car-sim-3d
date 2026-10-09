@@ -1,12 +1,5 @@
 extends "res://scripts/rainy_menu.gd"
 
-var laps_btn: Button
-var opp_btn: Button
-var police_btn: Button
-var fpsplit_btn: Button
-var gfx_btn: Button
-var weather_btn: Button
-var gun_btn: Button
 var tag_lab: Label
 var _items: Array[Button] = []
 var _sel := 0
@@ -16,7 +9,7 @@ func header_text() -> String:
 
 
 func header_px() -> int:
-	return 36
+	return 34
 
 
 func chrome_kind() -> String:
@@ -33,12 +26,15 @@ func show_preview() -> bool:
 
 func build_ui() -> void:
 	var rail := VBoxContainer.new()
-	rail.set_anchors_preset(PRESET_LEFT_WIDE)
-	rail.offset_left = 40
-	rail.offset_right = 500
-	rail.offset_top = 138
-	rail.offset_bottom = -86
-	rail.add_theme_constant_override("separation", 2)
+	rail.set_anchors_preset(PRESET_CENTER_LEFT)
+	rail.anchor_top = 0.5
+	rail.anchor_bottom = 0.5
+	rail.anchor_right = 0.0
+	rail.offset_left = 56
+	rail.offset_right = 420
+	rail.offset_top = -170
+	rail.offset_bottom = 210
+	rail.add_theme_constant_override("separation", 0)
 	add_child(rail)
 	_mw(rail, "QUICK RACE", _start_single)
 	_mw(rail, "SPLIT SCREEN", _start_split)
@@ -59,75 +55,25 @@ func build_ui() -> void:
 	)
 	_paint_sel()
 
-	var card := UiKit.mw_panel()
-	card.set_anchors_preset(PRESET_BOTTOM_RIGHT)
-	card.anchor_left = 1.0
-	card.anchor_top = 1.0
-	card.offset_left = -420
-	card.offset_top = -236
-	card.offset_right = -36
-	card.offset_bottom = -28
-	add_child(card)
-	var opt := VBoxContainer.new()
-	opt.add_theme_constant_override("separation", 2)
-	card.add_child(opt)
-	var head := UiKit.shadow_label("TRANSMISSION", 12, UiKit.GOLD())
-	opt.add_child(head)
-	laps_btn = UiKit.mw_btn("", false, 360)
-	opp_btn = UiKit.mw_btn("", false, 360)
-	police_btn = UiKit.mw_btn("", false, 360)
-	fpsplit_btn = UiKit.mw_btn("", false, 360)
-	gfx_btn = UiKit.mw_btn("", false, 360)
-	weather_btn = UiKit.mw_btn("", false, 360)
-	gun_btn = UiKit.mw_btn("", false, 360)
-	for b in [laps_btn, opp_btn, police_btn, fpsplit_btn, gfx_btn, weather_btn, gun_btn]:
-		b.custom_minimum_size = Vector2(360, 26)
-		b.add_theme_font_size_override("font_size", 14)
-	_add(opt, laps_btn, func() -> void:
-		GameState.cycle_laps()
-		_sync_features()
-	)
-	_add(opt, opp_btn, func() -> void:
-		GameState.cycle_opponents()
-		_sync_features()
-	)
-	_add(opt, police_btn, func() -> void:
-		GameState.police_enabled = not GameState.police_enabled
-		_sync_features()
-	)
-	_add(opt, fpsplit_btn, func() -> void:
-		GameState.freeplay_split = not GameState.freeplay_split
-		_sync_features()
-	)
-	_add(opt, gfx_btn, func() -> void:
-		GameState.cycle_quality()
-		_sync_features()
-	)
-	_add(opt, weather_btn, func() -> void:
-		GameState.cycle_weather()
-		_sync_features()
-	)
-	_add(opt, gun_btn, func() -> void:
-		GameState.gun_enabled = not GameState.gun_enabled
-		_sync_features()
-	)
-
 	var streak := ""
 	if GameState.win_streak > 0:
-		streak = "   WIN STREAK x%d" % GameState.win_streak
-	tag_lab = UiKit.shadow_label("1-9 SELECT   ENTER CONFIRM   ESC QUIT%s" % streak, 13, Color(0.62, 0.66, 0.70))
+		streak = "   ·   WIN STREAK x%d" % GameState.win_streak
+	tag_lab = UiKit.shadow_label("ENTER  ·  1-9  ·  L O T G U  OPTIONS%s" % streak, 13, Color(0.70, 0.72, 0.74))
+	tag_lab.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	tag_lab.set_anchors_preset(PRESET_BOTTOM_WIDE)
-	tag_lab.offset_left = 48
-	tag_lab.offset_right = -48
-	tag_lab.offset_top = -26
-	tag_lab.offset_bottom = -6
+	tag_lab.offset_left = 24
+	tag_lab.offset_right = -24
+	tag_lab.offset_top = -28
+	tag_lab.offset_bottom = -8
 	add_child(tag_lab)
 	_sync_features()
 
 
 func _mw(parent: Control, text: String, cb: Callable) -> void:
 	var idx := _items.size()
-	var b := UiKit.mw_btn("%d   %s" % [idx + 1, text], false, 440)
+	var b := UiKit.mw_btn(text, false, 340)
+	b.set_meta("mw_name", text)
+	b.set_meta("mw_cb", cb)
 	b.pressed.connect(func() -> void:
 		_sel = idx
 		_paint_sel()
@@ -135,12 +81,14 @@ func _mw(parent: Control, text: String, cb: Callable) -> void:
 	)
 	parent.add_child(b)
 	_items.append(b)
-	b.set_meta("mw_cb", cb)
 
 
 func _paint_sel() -> void:
 	for i in _items.size():
-		UiKit.mw_style(_items[i], i == _sel)
+		var on := i == _sel
+		var name := str(_items[i].get_meta("mw_name"))
+		_items[i].text = (">  " + name) if on else name
+		UiKit.mw_style(_items[i], on)
 
 
 func _activate() -> void:
@@ -152,19 +100,14 @@ func _activate() -> void:
 
 
 func _sync_features() -> void:
-	laps_btn.text = "LAPS            %d" % GameState.total_laps()
-	opp_btn.text = "FIELD           %d" % GameState.opponent_count()
-	police_btn.text = "POLICE          %s" % ("ON" if GameState.police_enabled else "OFF")
-	fpsplit_btn.text = "FREE-PLAY SPLIT %s" % ("ON" if GameState.freeplay_split else "OFF")
-	gfx_btn.text = "GRAPHICS        %s" % GameState.quality_name()
-	weather_btn.text = "WEATHER         %s" % str(GameState.weather().get("name", "CLEAR"))
-	gun_btn.text = "WEAPONS         %s" % ("ON" if GameState.gun_enabled else "OFF")
 	apply_menu_settings()
-	if subtitle:
-		var car: Dictionary = GameState.selected_car()
-		subtitle.text = "%s   ·   BLACKLIST OPEN" % str(car.get("name", "RACER"))
 	if status:
-		status.text = "13 CIRCUITS   ·   KENNEY GARAGE   ·   FIREBASE / LAN"
+		var car: Dictionary = GameState.selected_car()
+		status.text = "%s\n%s   ·   %s" % [
+			str(car.get("name", "RACER")),
+			str(GameState.weather().get("name", "CLEAR")),
+			GameState.quality_name(),
+		]
 
 
 func _go_car_select() -> void:

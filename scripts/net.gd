@@ -215,6 +215,11 @@ func send_chat(text: String) -> void:
 		"text": text,
 		"ts": int(Time.get_unix_time_from_system() * 1000.0),
 	}
+	chat.append(msg)
+	if chat.size() > 16:
+		chat = chat.slice(chat.size() - 16, chat.size())
+	chat_received.emit(text)
+	room_updated.emit()
 	_fire_and_forget(HTTPClient.METHOD_POST, "rooms/%s/chat" % room, msg)
 
 

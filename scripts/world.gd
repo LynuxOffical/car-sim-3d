@@ -17,6 +17,7 @@ var finish_order: Array[ArcadeCar] = []
 var shot_seq := 0
 
 func _ready() -> void:
+	GameState.typing = false
 	GameState.reset_wanted()
 	Engine.physics_ticks_per_second = 60
 	get_tree().physics_interpolation = false
@@ -54,15 +55,16 @@ func _ready() -> void:
 	if GameState.split_screen and player2 and cam2:
 		_setup_split_views()
 	else:
-		var hud: Node = preload("res://scripts/hud.gd").new()
-		add_child(hud)
-		hud.call("setup", player, land)
+		_attach_hud(player)
+	_attach_chat()
 	if GameState.touch_enabled and not GameState.split_screen:
 		var touch: Node = preload("res://scripts/touch_ui.gd").new()
 		add_child(touch)
 		touch.call("setup", player, cam)
-	if cam:
+	if cam and is_instance_valid(cam):
 		cam.current = true
+	if cam2 and is_instance_valid(cam2):
+		cam2.current = true
 	if Net.online:
 		if not Net.room_updated.is_connected(_sync_firebase):
 			Net.room_updated.connect(_sync_firebase)
@@ -79,6 +81,8 @@ func _ensure_view() -> void:
 		vp.disable_3d = false
 	if cam and is_instance_valid(cam):
 		cam.current = true
+	if cam2 and is_instance_valid(cam2):
+		cam2.current = true
 
 
 func _lighting() -> void:
@@ -169,9 +173,13 @@ func _make_cam(who: Node3D, spawn: Vector3, head: float) -> Camera3D:
 
 
 func _setup_split_views() -> void:
-	get_viewport().disable_3d = true
+	if cam:
+		cam.current = false
+	if cam2:
+		cam2.current = false
 	var layer := CanvasLayer.new()
 	layer.layer = 1
+	layer.name = "SplitLayer"
 	add_child(layer)
 	var row := HBoxContainer.new()
 	row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -182,26 +190,59 @@ func _setup_split_views() -> void:
 
 
 func _split_pane(camera: Camera3D, who: PlayerCar) -> Control:
-	var wrap := SubViewportContainer.new()
-	wrap.stretch = true
+	var wrap := Control.new()
 	wrap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	wrap.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var svc := SubViewportContainer.new()
+	svc.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	svc.stretch = true
+	svc.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	wrap.add_child(svc)
 	var vp := SubViewport.new()
-	vp.world_3d = get_world_3d()
+	vp.own_world_3d = false
 	vp.handle_input_locally = false
 	vp.audio_listener_enable_3d = who == player
-	vp.msaa_3d = get_viewport().msaa_3d
-	vp.use_taa = get_viewport().use_taa
+	var root_vp := get_viewport()
+	vp.msaa_3d = Viewport.MSAA_2X if root_vp.msaa_3d > Viewport.MSAA_2X else root_vp.msaa_3d
+	vp.use_taa = false
+	vp.transparent_bg = false
 	vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
-	wrap.add_child(vp)
-	if camera.get_parent():
-		camera.get_parent().remove_child(camera)
-	vp.add_child(camera)
-	camera.current = true
-	var hud: Node = preload("res://scripts/hud.gd").new()
-	vp.add_child(hud)
-	hud.call("setup", who, land)
+	var half := Vector2i(maxi(2, int(root_vp.get_visible_rect().size.x * 0.5)), maxi(2, int(root_vp.get_visible_rect().size.y)))
+	vp.size = half
+	svc.add_child(vp)
+	vp.world_3d = get_world_3d()
+	if camera and is_instance_valid(camera):
+		camera.current = false
+		var old := camera.get_parent()
+		if old:
+			old.remove_child(camera)
+		vp.add_child(camera)
+		camera.current = true
+	_attach_hud(who, wrap)
 	return wrap
+
+
+func _attach_hud(who: PlayerCar, overlay: Control = null) -> void:
+	var hud: Control = preload("res://scripts/hud.gd").new()
+	if overlay:
+		overlay.add_child(hud)
+	else:
+		var layer := CanvasLayer.new()
+		layer.layer = 20
+		add_child(layer)
+		layer.add_child(hud)
+	hud.call("setup", who, land)
+
+
+func _attach_chat() -> void:
+	var layer := CanvasLayer.new()
+	layer.layer = 40
+	layer.name = "ChatLayer"
+	add_child(layer)
+	var chat: Control = preload("res://scripts/mc_chat.gd").new()
+	chat.name = "McChat"
+	layer.add_child(chat)
 
 
 func _spawn_life() -> void:
@@ -290,6 +331,8 @@ func _process(delta: float) -> void:
 			_lan_send()
 	if GameState.mode == GameState.Mode.FREEPLAY:
 		_update_bounty(delta)
+	if GameState.typing:
+		return
 	if Input.is_action_just_pressed("pause"):
 		Net.leave()
 		Lan.leave()

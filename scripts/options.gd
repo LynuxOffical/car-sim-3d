@@ -41,6 +41,9 @@ func build_ui() -> void:
 		GameState.touch_enabled = not GameState.touch_enabled
 		get_tree().reload_current_scene()
 	)
+	_add(col, UiKit.py_btn("REMAP CONTROLS", Color(0.93, 0.76, 0.22), 22), func() -> void:
+		get_tree().change_scene_to_file("res://scenes/controls.tscn")
+	)
 	_add(col, UiKit.py_btn("BACK", Color(0.95, 0.9, 0.55), 22), func() -> void:
 		get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
 	)

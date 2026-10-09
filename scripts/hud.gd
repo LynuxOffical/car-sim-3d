@@ -1,4 +1,4 @@
-extends CanvasLayer
+extends Control
 
 ## NFS HUD from the Panda3D build: gauge, minimap, laps, bounty / HP.
 
@@ -24,7 +24,8 @@ var kmh_show := 0.0
 func setup(p: PlayerCar, w: IslandWorld) -> void:
 	player = p
 	world = w
-	layer = 20
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hud_root = Control.new()
 	hud_root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	hud_root.mouse_filter = Control.MOUSE_FILTER_IGNORE

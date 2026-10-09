@@ -17,8 +17,14 @@ var menu_vp: SubViewport
 var menu_sun: DirectionalLight3D
 var menu_time := 0.0
 var _placeholder: ColorRect
+var show_fill: OmniLight3D
+var show_rim: OmniLight3D
+var show_spot: SpotLight3D
+var show_spot2: SpotLight3D
+var show_ring: MeshInstance3D
 
 func _ready() -> void:
+	GameState.typing = false
 	set_anchors_preset(PRESET_FULL_RECT)
 	_placeholder = ColorRect.new()
 	_placeholder.set_anchors_preset(PRESET_FULL_RECT)
@@ -165,40 +171,7 @@ func _build_world() -> void:
 	world.add_child(sun)
 
 	if world_kind() == "showroom":
-		var floor := MeshInstance3D.new()
-		var plane := PlaneMesh.new()
-		plane.size = Vector2(40, 40)
-		floor.mesh = plane
-		var fmat := StandardMaterial3D.new()
-		fmat.albedo_color = Color(0.07, 0.075, 0.085)
-		fmat.metallic = 0.55
-		fmat.roughness = 0.22
-		fmat.specular_mode = BaseMaterial3D.SPECULAR_SCHLICK_GGX
-		floor.material_override = fmat
-		floor.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		world.add_child(floor)
-		var ring := MeshInstance3D.new()
-		var torus := TorusMesh.new()
-		torus.inner_radius = 3.2
-		torus.outer_radius = 3.45
-		ring.mesh = torus
-		ring.position.y = 0.02
-		ring.material_override = Mats.solid(Color(0.22, 0.24, 0.28), 0.35, 0.4)
-		world.add_child(ring)
-		var fill := OmniLight3D.new()
-		fill.position = Vector3(-3.5, 2.4, 2.2)
-		fill.light_energy = 1.8
-		fill.light_color = Color(0.62, 0.74, 0.95)
-		fill.omni_range = 12.0
-		fill.shadow_enabled = false
-		world.add_child(fill)
-		var rim := OmniLight3D.new()
-		rim.position = Vector3(3.2, 1.6, -2.8)
-		rim.light_energy = 1.2
-		rim.light_color = Color(0.95, 0.78, 0.55)
-		rim.omni_range = 10.0
-		rim.shadow_enabled = false
-		world.add_child(rim)
+		_dress_showroom(world)
 	elif world_kind() == "track":
 		vp_world = world
 		menu_env = env
@@ -213,7 +186,7 @@ func _build_world() -> void:
 		_hill(world, Vector3(20, 3, -18), Vector3(16, 10, 12))
 
 	preview_host = Node3D.new()
-	preview_host.position = Vector3(0.0, 0.05, 0.0)
+	preview_host.position = Vector3(0.0, 0.12 if world_kind() == "showroom" else 0.05, 0.0)
 	world.add_child(preview_host)
 
 	cam = Camera3D.new()
@@ -270,9 +243,9 @@ func _orbit_camera() -> void:
 		var back := Vector3(sin(h), 0.0, cos(h))
 		var side := Vector3(cos(h), 0.0, -sin(h))
 		cam.far = 1800.0
-		cam.fov = 46.0
-		cam.global_position = spawn + back * (8.6 + sin(a) * 0.55) + side * (2.6 + cos(a) * 0.35) + Vector3(0, 2.05, 0)
-		_safe_look(cam, spawn + Vector3(0, 0.82, 0))
+		cam.fov = 44.0
+		cam.global_position = spawn + back * (7.4 + sin(a) * 0.4) + side * (4.8 + cos(a) * 0.25) + Vector3(0, 1.85, 0)
+		_safe_look(cam, spawn + Vector3(side.x * -0.4, 0.72, side.z * -0.4))
 		if preview_host:
 			preview_host.global_position = spawn
 			preview_host.rotation.y = h
@@ -354,37 +327,40 @@ func _wanted_chrome() -> void:
 	var top := ColorRect.new()
 	top.color = gold
 	top.set_anchors_preset(PRESET_TOP_WIDE)
-	top.offset_bottom = 3
+	top.offset_bottom = 2
 	top.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(top)
 	var bot := ColorRect.new()
 	bot.color = gold
 	bot.set_anchors_preset(PRESET_BOTTOM_WIDE)
-	bot.offset_top = -3
+	bot.offset_top = -2
 	bot.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(bot)
 	title = UiKit.shadow_label(header_text(), header_px(), Color(0.98, 0.96, 0.88))
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.set_anchors_preset(PRESET_TOP_WIDE)
-	title.offset_left = 48
-	title.offset_right = -48
-	title.offset_top = 18
-	title.offset_bottom = 70
+	title.offset_left = 0
+	title.offset_right = 0
+	title.offset_top = 16
+	title.offset_bottom = 62
 	add_child(title)
-	var rule := ColorRect.new()
-	rule.color = gold
-	rule.position = Vector2(48, 72)
-	rule.size = Vector2(280, 2)
-	rule.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(rule)
-	splash = UiKit.shadow_label("MOST WANTED  //  RETRO-FUTURE", 14, gold)
-	splash.position = Vector2(48, 78)
+	splash = UiKit.shadow_label("MOST WANTED", 13, gold)
+	splash.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	splash.set_anchors_preset(PRESET_TOP_WIDE)
+	splash.offset_top = 58
+	splash.offset_bottom = 80
 	add_child(splash)
-	subtitle = UiKit.shadow_label("", 16, Color(0.70, 0.84, 0.88))
-	subtitle.position = Vector2(48, 100)
+	subtitle = UiKit.shadow_label("", 15, Color(0.86, 0.88, 0.90))
+	subtitle.visible = false
 	add_child(subtitle)
-	status = UiKit.shadow_label("", 14, Color(0.62, 0.66, 0.70))
-	status.position = Vector2(48, 122)
+	status = UiKit.shadow_label("", 13, Color(0.70, 0.72, 0.74))
+	status.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	status.set_anchors_preset(PRESET_TOP_RIGHT)
+	status.anchor_left = 1.0
+	status.offset_left = -420
+	status.offset_right = -28
+	status.offset_top = 22
+	status.offset_bottom = 52
 	add_child(status)
 
 
@@ -569,12 +545,140 @@ func _apply_menu_weather() -> void:
 		menu_sun.light_energy = energy
 
 
+func _dress_showroom(world: Node3D) -> void:
+	var floor := MeshInstance3D.new()
+	var plane := PlaneMesh.new()
+	plane.size = Vector2(48, 48)
+	floor.mesh = plane
+	var fmat := StandardMaterial3D.new()
+	fmat.albedo_color = Color(0.055, 0.06, 0.07)
+	fmat.metallic = 0.72
+	fmat.roughness = 0.16
+	floor.material_override = fmat
+	floor.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	world.add_child(floor)
+	var plate := MeshInstance3D.new()
+	var cyl := CylinderMesh.new()
+	cyl.top_radius = 3.15
+	cyl.bottom_radius = 3.15
+	cyl.height = 0.08
+	plate.mesh = cyl
+	plate.position.y = 0.04
+	var pmat := StandardMaterial3D.new()
+	pmat.albedo_color = Color(0.12, 0.13, 0.15)
+	pmat.metallic = 0.85
+	pmat.roughness = 0.18
+	pmat.emission_enabled = true
+	pmat.emission = Color(0.18, 0.22, 0.28)
+	pmat.emission_energy_multiplier = 0.45
+	plate.material_override = pmat
+	world.add_child(plate)
+	show_ring = MeshInstance3D.new()
+	var torus := TorusMesh.new()
+	torus.inner_radius = 3.25
+	torus.outer_radius = 3.52
+	show_ring.mesh = torus
+	show_ring.position.y = 0.06
+	var rmat := StandardMaterial3D.new()
+	rmat.albedo_color = Color(0.85, 0.72, 0.28)
+	rmat.metallic = 0.4
+	rmat.roughness = 0.28
+	rmat.emission_enabled = true
+	rmat.emission = Color(0.95, 0.78, 0.22)
+	rmat.emission_energy_multiplier = 0.9
+	show_ring.material_override = rmat
+	world.add_child(show_ring)
+	for i in 6:
+		var strip := MeshInstance3D.new()
+		var box := BoxMesh.new()
+		box.size = Vector3(0.18, 0.06, 7.5)
+		strip.mesh = box
+		var ang := TAU * float(i) / 6.0
+		strip.position = Vector3(sin(ang) * 7.4, 5.4, cos(ang) * 7.4)
+		strip.rotation.y = ang
+		var sm := StandardMaterial3D.new()
+		sm.albedo_color = Color(0.9, 0.92, 0.95)
+		sm.emission_enabled = true
+		sm.emission = Color(0.75, 0.82, 1.0)
+		sm.emission_energy_multiplier = 1.4
+		strip.material_override = sm
+		world.add_child(strip)
+		var ceil := OmniLight3D.new()
+		ceil.position = Vector3(sin(ang) * 6.2, 4.6, cos(ang) * 6.2)
+		ceil.light_energy = 0.85
+		ceil.light_color = Color(0.85, 0.9, 1.0)
+		ceil.omni_range = 9.0
+		ceil.shadow_enabled = false
+		world.add_child(ceil)
+	show_fill = OmniLight3D.new()
+	show_fill.position = Vector3(-3.2, 2.6, 2.4)
+	show_fill.light_energy = 2.1
+	show_fill.light_color = Color(0.55, 0.72, 1.0)
+	show_fill.omni_range = 14.0
+	show_fill.shadow_enabled = false
+	world.add_child(show_fill)
+	show_rim = OmniLight3D.new()
+	show_rim.position = Vector3(3.4, 1.7, -2.6)
+	show_rim.light_energy = 1.55
+	show_rim.light_color = Color(1.0, 0.72, 0.42)
+	show_rim.omni_range = 11.0
+	show_rim.shadow_enabled = false
+	world.add_child(show_rim)
+	show_spot = SpotLight3D.new()
+	show_spot.position = Vector3(0.0, 7.2, 0.0)
+	show_spot.rotation_degrees = Vector3(-72, 0, 0)
+	show_spot.spot_range = 16.0
+	show_spot.spot_angle = 32.0
+	show_spot.light_energy = 3.4
+	show_spot.light_color = Color(1.0, 0.96, 0.88)
+	show_spot.shadow_enabled = false
+	world.add_child(show_spot)
+	show_spot2 = SpotLight3D.new()
+	show_spot2.position = Vector3(4.5, 5.8, -3.2)
+	show_spot2.rotation_degrees = Vector3(-55, 40, 0)
+	show_spot2.spot_range = 14.0
+	show_spot2.spot_angle = 28.0
+	show_spot2.light_energy = 2.2
+	show_spot2.light_color = Color(0.55, 0.78, 1.0)
+	show_spot2.shadow_enabled = false
+	world.add_child(show_spot2)
+	var parked := [1, 4, 7]
+	for i in parked.size():
+		var v: Dictionary = GameState.VEHICLES[parked[i]]
+		var packed: PackedScene = load(str(v.get("glb", "")))
+		if packed == null:
+			continue
+		var n: Node3D = packed.instantiate()
+		var ang := TAU * float(i) / float(parked.size()) + 0.7
+		n.position = Vector3(sin(ang) * 9.6, 0.0, cos(ang) * 9.6)
+		n.rotation.y = ang + PI
+		n.scale = Vector3.ONE * 0.92
+		world.add_child(n)
+		CarPaint.apply(n, str(v.get("id")), GameState.PAINTS[(i * 3 + 2) % GameState.PAINTS.size()]["color"], (i * 3 + 2) % GameState.PAINTS.size(), false, float(v.get("length", 4.5)))
+	var haze := GPUParticles3D.new()
+	haze.amount = 28
+	haze.lifetime = 4.5
+	haze.position = Vector3(0, 1.2, 0)
+	var pm := ParticleProcessMaterial.new()
+	pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
+	pm.emission_shape_scale = Vector3(8, 1.2, 8)
+	pm.gravity = Vector3(0, 0.15, 0)
+	pm.initial_velocity_min = 0.05
+	pm.initial_velocity_max = 0.2
+	pm.color = Color(0.7, 0.78, 0.9, 0.22)
+	haze.process_material = pm
+	var quad := QuadMesh.new()
+	quad.size = Vector2(0.12, 0.12)
+	haze.draw_pass_1 = quad
+	world.add_child(haze)
+
+
 func _orbit_showroom() -> void:
 	if cam == null:
 		return
-	var a := menu_time * 0.22
-	cam.position = Vector3(sin(a) * 10.4, 2.35, cos(a) * 11.2)
-	_safe_look(cam, Vector3(0.0, 0.65, 0.0))
+	var a := menu_time * 0.18
+	cam.position = Vector3(sin(a) * 11.2, 2.55 + sin(menu_time * 0.35) * 0.18, cos(a) * 12.0)
+	_safe_look(cam, Vector3(0.0, 0.72, 0.0))
 
 
 func _process(_delta: float) -> void:
@@ -583,8 +687,18 @@ func _process(_delta: float) -> void:
 		_orbit_camera()
 	elif world_kind() == "showroom":
 		_orbit_showroom()
+		if show_spot:
+			show_spot.rotation.y += _delta * 0.65
+		if show_spot2:
+			show_spot2.rotation.y -= _delta * 0.42
+		if show_fill:
+			show_fill.light_energy = 1.85 + sin(menu_time * 2.3) * 0.35
+		if show_rim:
+			show_rim.light_energy = 1.35 + sin(menu_time * 1.7 + 1.2) * 0.28
+		if show_ring and show_ring.material_override is StandardMaterial3D:
+			(show_ring.material_override as StandardMaterial3D).emission_energy_multiplier = 0.7 + sin(menu_time * 3.1) * 0.4
 	if preview_host and show_preview() and chrome_kind() != "wanted":
-		preview_host.rotation.y += _delta * 0.18
+		preview_host.rotation.y += _delta * 0.22
 	if splash and splash.visible:
 		var pulse := 1.0 + sin(Time.get_ticks_msec() * 0.006) * 0.04
 		splash.scale = Vector2(pulse, pulse)

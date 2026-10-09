@@ -112,6 +112,7 @@ var win_streak: int = 0
 var chase_bonus: float = 0.0
 var p2_car_index: int = 1
 var p2_paint_index: int = 3
+var typing := false
 
 func _ready() -> void:
 	quality = clampi(quality, 0, QUALITY_NAMES.size() - 1)

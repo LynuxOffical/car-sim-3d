@@ -26,7 +26,7 @@ var road_mats: Array[ShaderMaterial] = []
 var open_city := false
 var _batch: SurfaceTool
 
-const WIDTH_SCALE := 1.16
+const WIDTH_SCALE := 1.52
 
 const MAPS := [
 	{

@@ -31,6 +31,10 @@ func show_preview() -> bool:
 	return true
 
 
+func overlay_dim() -> Color:
+	return Color(0.0, 0.0, 0.0, 0.06)
+
+
 func build_ui() -> void:
 	var top := VBoxContainer.new()
 	top.set_anchors_preset(PRESET_TOP_WIDE)

@@ -175,7 +175,7 @@ func arcade_step(delta: float, throttle: float, steer: float) -> void:
 		fire_cd = maxf(0.0, fire_cd - delta)
 	if hit_flash > 0.0:
 		hit_flash = maxf(0.0, hit_flash - delta)
-	nitro_active = player_slot == 0 and ai_skill == 0.0 and not is_police and (Input.is_action_pressed("nitro") or GameState.nitro_touch) and nitro_tank > 0.05 and throttle > 0.1
+	nitro_active = ai_skill == 0.0 and not is_police and _held("nitro") and nitro_tank > 0.05 and throttle > 0.1
 	if nitro_active:
 		nitro_tank = maxf(0.0, nitro_tank - delta * 0.38)
 	else:
@@ -189,9 +189,8 @@ func arcade_step(delta: float, throttle: float, steer: float) -> void:
 			speed += brake_rate * grip * throttle * delta
 		else:
 			speed += REVERSE_ACCEL * throttle * delta
-	if player_slot == 0 and (Input.is_action_pressed("handbrake") or GameState.handbrake_touch):
-		if ai_skill == 0.0 and not is_police:
-			speed *= exp(-2.8 * delta)
+	if ai_skill == 0.0 and not is_police and _held("handbrake"):
+		speed *= exp(-2.8 * delta)
 	speed *= exp(-ROLL_DECAY * delta)
 	speed -= DRAG * speed * absf(speed) * delta
 	if absf(speed) < 0.02 and is_zero_approx(throttle):
@@ -230,39 +229,39 @@ func arcade_step(delta: float, throttle: float, steer: float) -> void:
 		w.rotation.x = -_wheel_roll
 
 
+func _prefix() -> String:
+	return "p2_" if player_slot == 1 else ""
+
+
+func _held(action_id: String) -> bool:
+	if GameState.typing:
+		return false
+	if Input.is_action_pressed(_prefix() + action_id):
+		return true
+	if player_slot == 0:
+		if action_id == "nitro" and GameState.nitro_touch:
+			return true
+		if action_id == "handbrake" and GameState.handbrake_touch:
+			return true
+		if action_id == "fire" and GameState.fire_touch:
+			return true
+	return false
+
+
 func read_player_controls() -> Vector2:
-	if GameState.split_screen:
-		if player_slot == 0:
-			var throttle := 0.0
-			if Input.is_physical_key_pressed(KEY_UP):
-				throttle = 1.0
-			elif Input.is_physical_key_pressed(KEY_DOWN):
-				throttle = -1.0
-			var steer := 0.0
-			if Input.is_physical_key_pressed(KEY_LEFT):
-				steer = 1.0
-			elif Input.is_physical_key_pressed(KEY_RIGHT):
-				steer = -1.0
-			if _use_touch and (absf(_touch_throttle) > 0.08 or absf(_touch_steer) > 0.08):
-				throttle = _touch_throttle
-				steer = -_touch_steer
-			return Vector2(throttle, steer)
-		var t2 := 0.0
-		if Input.is_physical_key_pressed(KEY_W):
-			t2 = 1.0
-		elif Input.is_physical_key_pressed(KEY_S):
-			t2 = -1.0
-		var s2 := 0.0
-		if Input.is_physical_key_pressed(KEY_A):
-			s2 = 1.0
-		elif Input.is_physical_key_pressed(KEY_D):
-			s2 = -1.0
-		return Vector2(t2, s2)
-	var throttle := Input.get_axis("brake", "accelerate")
-	var steer := Input.get_axis("steer_right", "steer_left")
+	if GameState.typing:
+		return Vector2.ZERO
+	var p := _prefix()
+	var throttle := Input.get_axis(p + "brake", p + "accelerate")
+	var steer := Input.get_axis(p + "steer_right", p + "steer_left")
+	if player_slot == 0 and not GameState.split_screen:
+		if absf(throttle) < 0.08:
+			throttle = Input.get_axis("p2_brake", "p2_accelerate")
+		if absf(steer) < 0.08:
+			steer = Input.get_axis("p2_steer_right", "p2_steer_left")
 	if auto_throttle != 0.0:
 		throttle = auto_throttle
-	if absf(throttle) < 0.08 and absf(steer) < 0.08 and Input.get_connected_joypads().size() > 0:
+	if player_slot == 0 and absf(throttle) < 0.08 and absf(steer) < 0.08 and Input.get_connected_joypads().size() > 0:
 		var jx := Input.get_joy_axis(0, JOY_AXIS_LEFT_X)
 		var rt := Input.get_joy_axis(0, JOY_AXIS_TRIGGER_RIGHT)
 		var lt := Input.get_joy_axis(0, JOY_AXIS_TRIGGER_LEFT)
@@ -270,7 +269,7 @@ func read_player_controls() -> Vector2:
 			steer = -jx
 		if rt > 0.25 or lt > 0.25:
 			throttle = clampf(rt, 0.0, 1.0) - clampf(lt, 0.0, 1.0)
-	if _use_touch and (absf(_touch_throttle) > 0.08 or absf(_touch_steer) > 0.08):
+	if player_slot == 0 and _use_touch and (absf(_touch_throttle) > 0.08 or absf(_touch_steer) > 0.08):
 		throttle = _touch_throttle
 		steer = -_touch_steer
 	return Vector2(throttle, steer)
@@ -279,9 +278,7 @@ func read_player_controls() -> Vector2:
 func wants_fire() -> bool:
 	if not GameState.gun_enabled or wreck_t > 0.0 or fire_cd > 0.0:
 		return false
-	if player_slot == 1:
-		return Input.is_physical_key_pressed(KEY_Q)
-	return Input.is_action_pressed("fire") or GameState.fire_touch
+	return _held("fire")
 
 
 func muzzle() -> Vector3:

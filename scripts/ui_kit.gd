@@ -107,53 +107,47 @@ static func CYAN() -> Color:
 	return Color(0.38, 0.88, 0.96)
 
 
-static func mw_btn(text: String, selected := false, min_w := 430.0) -> Button:
+static func mw_btn(text: String, selected := false, min_w := 360.0) -> Button:
 	var b := Button.new()
 	b.text = text
 	b.alignment = HORIZONTAL_ALIGNMENT_LEFT
-	b.custom_minimum_size = Vector2(min_w, 40.0 if not GameState.touch_enabled else 52.0)
+	b.custom_minimum_size = Vector2(min_w, 38.0 if not GameState.touch_enabled else 50.0)
 	b.focus_mode = Control.FOCUS_NONE
 	b.mouse_filter = Control.MOUSE_FILTER_STOP
-	b.add_theme_font_size_override("font_size", 20 if not GameState.touch_enabled else 22)
-	b.add_theme_constant_override("shadow_offset_x", 1)
-	b.add_theme_constant_override("shadow_offset_y", 1)
+	b.flat = true
 	mw_style(b, selected)
 	return b
 
 
 static func mw_style(b: Button, selected: bool) -> void:
 	var gold := GOLD()
-	var fill := Color(0.93, 0.76, 0.22, 0.16) if selected else Color(0.02, 0.03, 0.05, 0.0)
-	var hover := Color(0.93, 0.76, 0.22, 0.10)
-	b.add_theme_color_override("font_color", Color(1.0, 0.96, 0.82) if selected else Color(0.72, 0.74, 0.76))
-	b.add_theme_color_override("font_hover_color", Color(1.0, 0.97, 0.88))
+	b.add_theme_font_size_override("font_size", 26 if selected else 18)
+	b.add_theme_color_override("font_color", Color(1.0, 0.94, 0.55) if selected else Color(0.78, 0.80, 0.82, 0.78))
+	b.add_theme_color_override("font_hover_color", Color(1.0, 0.97, 0.82))
 	b.add_theme_color_override("font_pressed_color", gold)
-	b.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.85))
-	var n := _mw_bar(fill, gold if selected else Color(0, 0, 0, 0))
-	var h := _mw_bar(hover, gold)
-	var p := _mw_bar(Color(0.93, 0.76, 0.22, 0.22), gold)
+	b.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
+	b.add_theme_constant_override("shadow_offset_x", 2)
+	b.add_theme_constant_override("shadow_offset_y", 2)
+	var n := _mw_bar(Color(0, 0, 0, 0), Color(0, 0, 0, 0))
+	var h := _mw_bar(Color(1, 1, 1, 0.04), Color(0, 0, 0, 0))
+	var p := _mw_bar(Color(0.93, 0.76, 0.22, 0.08), Color(0, 0, 0, 0))
 	b.add_theme_stylebox_override("normal", n)
 	b.add_theme_stylebox_override("hover", h)
 	b.add_theme_stylebox_override("pressed", p)
 	b.add_theme_stylebox_override("focus", h)
 
 
-static func _mw_bar(fill: Color, accent: Color) -> StyleBoxFlat:
+static func _mw_bar(fill: Color, _accent: Color) -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = fill
-	sb.border_color = accent
-	sb.border_width_left = 4 if accent.a > 0.05 else 0
+	sb.border_width_left = 0
 	sb.border_width_top = 0
 	sb.border_width_right = 0
 	sb.border_width_bottom = 0
-	sb.corner_radius_top_left = 0
-	sb.corner_radius_top_right = 0
-	sb.corner_radius_bottom_left = 0
-	sb.corner_radius_bottom_right = 0
-	sb.content_margin_left = 18
-	sb.content_margin_right = 12
-	sb.content_margin_top = 8
-	sb.content_margin_bottom = 8
+	sb.content_margin_left = 4
+	sb.content_margin_right = 8
+	sb.content_margin_top = 4
+	sb.content_margin_bottom = 4
 	return sb
 
 

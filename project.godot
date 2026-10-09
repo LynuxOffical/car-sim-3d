@@ -13,6 +13,7 @@ config/icon="res://assets/icon.png"
 GameState="*res://scripts/game_state.gd"
 Net="*res://scripts/net.gd"
 Lan="*res://scripts/lan.gd"
+Controls="*res://scripts/controls.gd"
 
 [display]
 window/size/viewport_width=1280

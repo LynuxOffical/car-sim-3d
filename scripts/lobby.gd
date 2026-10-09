@@ -1,8 +1,6 @@
 extends "res://scripts/rainy_menu.gd"
 
 var players_lab: Label
-var chat_lab: Label
-var chat_edit: LineEdit
 var _launching := false
 
 func header_text() -> String:
@@ -35,19 +33,13 @@ func build_ui() -> void:
 	col.add_child(players_lab)
 	if Net.hosting:
 		_add(col, UiKit.py_btn("ENTER  -  START SESSION", Color(0.5, 1.0, 0.55), 22), func() -> void: _start())
-	chat_lab = UiKit.shadow_label("", 16, Color(0.8, 0.85, 0.9))
-	chat_lab.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	chat_lab.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	col.add_child(chat_lab)
-	chat_edit = LineEdit.new()
-	chat_edit.placeholder_text = "Chat  -  ENTER to send"
-	chat_edit.custom_minimum_size = Vector2(520, 40)
-	chat_edit.alignment = HORIZONTAL_ALIGNMENT_CENTER
-	chat_edit.text_submitted.connect(func(t):
-		Net.send_chat(t)
-		chat_edit.text = ""
-	)
-	col.add_child(chat_edit)
+	var hint := UiKit.shadow_label("T  open chat   ·   ENTER send   ·   ESC close", 15, Color(0.72, 0.78, 0.84))
+	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	col.add_child(hint)
+	var layer := CanvasLayer.new()
+	layer.layer = 50
+	add_child(layer)
+	layer.add_child(preload("res://scripts/mc_chat.gd").new())
 	_add(col, UiKit.py_btn("ESC  -  LEAVE", Color(0.95, 0.9, 0.55), 18), func() -> void:
 		Net.leave()
 		get_tree().change_scene_to_file("res://scenes/mp_menu.tscn")
@@ -73,11 +65,6 @@ func _refresh() -> void:
 			names.append(str(p.get("name", uid)))
 	if players_lab:
 		players_lab.text = "PLAYERS  %d\n%s" % [names.size(), "   ·   ".join(names)]
-	var lines: PackedStringArray = PackedStringArray()
-	for m in Net.chat:
-		lines.append("%s: %s" % [str(m.get("name", "?")), str(m.get("text", ""))])
-	if chat_lab:
-		chat_lab.text = "\n".join(lines)
 	if Net.started and not Net.hosting:
 		_go_drive()
 
@@ -105,9 +92,7 @@ func _go_drive() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_echo() or not event.is_pressed() or not (event is InputEventKey):
 		return
-	if chat_edit and chat_edit.has_focus():
-		if (event as InputEventKey).physical_keycode == KEY_ESCAPE:
-			chat_edit.release_focus()
+	if GameState.typing:
 		return
 	match (event as InputEventKey).physical_keycode:
 		KEY_ENTER, KEY_KP_ENTER:
