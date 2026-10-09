@@ -10,9 +10,17 @@ var tab := 0
 var picking_p2 := false
 var _p1_car := 0
 var _p1_paint := 0
+var p2_lab: Label
+var confirm_btn: Button
+var hint_lab: Label
+var _p2_gate_msec := 0
 
 func header_text() -> String:
-	return "P2  ·  garage" if picking_p2 else "P1  ·  garage"
+	if picking_p2:
+		return "PLAYER 2  ·  CHOOSE YOUR CAR"
+	if GameState.split_screen:
+		return "PLAYER 1  ·  garage"
+	return "GARAGE"
 
 
 func header_px() -> int:
@@ -45,6 +53,10 @@ func build_ui() -> void:
 	top.alignment = BoxContainer.ALIGNMENT_CENTER
 	top.add_theme_constant_override("separation", 8)
 	add_child(top)
+	p2_lab = UiKit.shadow_label("PLAYER 2  —  PICK A DIFFERENT CAR", 22, Color(1.0, 0.58, 0.74))
+	p2_lab.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	p2_lab.visible = false
+	top.add_child(p2_lab)
 	name_lab = UiKit.shadow_label("", 30, Color(0.96, 0.97, 0.99))
 	name_lab.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	top.add_child(name_lab)
@@ -106,14 +118,15 @@ func build_ui() -> void:
 		_step(-1)
 		_refresh_car()
 	)
-	_add(nav, UiKit.menu_btn("Enter  Confirm", Color(0.42, 0.86, 0.52), 16, 220), _confirm)
+	confirm_btn = UiKit.menu_btn("P1  Confirm" if GameState.split_screen else "Enter  Confirm", Color(0.42, 0.86, 0.52), 16, 220)
+	_add(nav, confirm_btn, _confirm)
 	_add(nav, UiKit.menu_btn("Next  >", Color(0.7, 0.74, 0.8), 16, 150), func() -> void:
 		_step(1)
 		_refresh_car()
 	)
-	var hint := UiKit.shadow_label("LEFT / RIGHT car    UP / DOWN paint    ENTER confirm    ESC back", 13, Color(0.62, 0.66, 0.72))
-	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	bottom_col.add_child(hint)
+	hint_lab = UiKit.shadow_label("LEFT / RIGHT car    UP / DOWN paint    ENTER confirm    ESC back", 13, Color(0.62, 0.66, 0.72))
+	hint_lab.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	bottom_col.add_child(hint_lab)
 	_rebuild_swatches()
 	_refresh_car()
 
@@ -145,10 +158,22 @@ func _refresh_car() -> void:
 
 func _update_car_ui() -> void:
 	var v: Dictionary = GameState.selected_car()
+	if p2_lab:
+		p2_lab.visible = picking_p2
 	if name_lab:
-		name_lab.text = "<   %s   >" % str(v.get("name", ""))
+		if picking_p2:
+			name_lab.text = "P2    <   %s   >" % str(v.get("name", ""))
+		elif GameState.split_screen:
+			name_lab.text = "P1    <   %s   >" % str(v.get("name", ""))
+		else:
+			name_lab.text = "<   %s   >" % str(v.get("name", ""))
 	if tag_lab:
-		tag_lab.text = str(v.get("tag", ""))
+		if picking_p2:
+			tag_lab.text = "player 2 garage    ·    %s" % str(v.get("tag", ""))
+		elif GameState.gun_enabled and str(v.get("id", "")).to_lower() == GameState.TECHNO_CAR_ID:
+			tag_lab.text = "%s    ·    volcano waits" % str(v.get("tag", ""))
+		else:
+			tag_lab.text = str(v.get("tag", ""))
 	if paint_lab:
 		paint_lab.text = str(GameState.PAINTS[GameState.paint_index]["name"])
 	var fracs := [
@@ -194,15 +219,10 @@ func _rebuild_swatches() -> void:
 
 
 func _confirm() -> void:
+	if Time.get_ticks_msec() < _p2_gate_msec:
+		return
 	if GameState.split_screen and not picking_p2:
-		_p1_car = GameState.car_index
-		_p1_paint = GameState.paint_index
-		picking_p2 = true
-		GameState.car_index = GameState.p2_car_index
-		GameState.paint_index = GameState.p2_paint_index
-		if title:
-			title.text = header_text()
-		_refresh_car()
+		_enter_p2()
 		return
 	if picking_p2:
 		GameState.p2_car_index = GameState.car_index
@@ -213,6 +233,34 @@ func _confirm() -> void:
 		get_tree().change_scene_to_file("res://scenes/loading.tscn")
 	else:
 		get_tree().change_scene_to_file("res://scenes/map_select.tscn")
+
+
+func _enter_p2() -> void:
+	_p1_car = GameState.car_index
+	_p1_paint = GameState.paint_index
+	picking_p2 = true
+	_p2_gate_msec = Time.get_ticks_msec() + 480
+	GameState.car_index = GameState.p2_car_index
+	GameState.paint_index = GameState.p2_paint_index
+	if GameState.car_index == _p1_car:
+		GameState.car_index = (_p1_car + 1) % GameState.VEHICLES.size()
+	if GameState.paint_index == _p1_paint:
+		GameState.paint_index = (_p1_paint + 3) % GameState.PAINTS.size()
+	_sync_tab_to_car()
+	if title:
+		title.text = header_text()
+	if confirm_btn:
+		confirm_btn.text = "  P2  Confirm"
+	if hint_lab:
+		hint_lab.text = "PLAYER 2    LEFT / RIGHT car    ENTER lock in    ESC back to P1"
+	_rebuild_swatches()
+	_refresh_car()
+
+
+func _sync_tab_to_car() -> void:
+	var k := str(GameState.VEHICLES[clampi(GameState.car_index, 0, GameState.VEHICLES.size() - 1)].get("kind"))
+	tab = 1 if k == "bike" else 0
+	_rebuild_tabs()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -239,8 +287,15 @@ func _unhandled_input(event: InputEvent) -> void:
 			GameState.car_index = _p1_car
 			GameState.paint_index = _p1_paint
 			picking_p2 = false
+			_p2_gate_msec = 0
 			if title:
 				title.text = header_text()
+			if confirm_btn:
+				confirm_btn.text = "  P1  Confirm"
+			if hint_lab:
+				hint_lab.text = "LEFT / RIGHT car    UP / DOWN paint    ENTER confirm    ESC back"
+			_sync_tab_to_car()
+			_rebuild_swatches()
 			_refresh_car()
 		else:
 			get_tree().change_scene_to_file("res://scenes/main_menu.tscn")

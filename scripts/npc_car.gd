@@ -18,7 +18,7 @@ func setup(p_role: Role, mesh_path: String, pts: Array[Vector3], who: Node3D, sk
 	if p_role == Role.COP:
 		car = {
 			"id": "police", "kind": "car", "glb": "res://assets/cars/police.glb",
-			"length": 4.5, "max_speed": 125.0, "accel": 32.0, "brake": 50.0, "steer": 2.30, "nitro": 0.0,
+			"length": 4.5, "max_speed": 188.0, "accel": 62.0, "brake": 58.0, "steer": 3.55, "nitro": 1.4,
 		}
 		is_police = true
 		display_name = "PATROL"
@@ -34,8 +34,6 @@ func setup(p_role: Role, mesh_path: String, pts: Array[Vector3], who: Node3D, sk
 		}
 	var paint: Color = GameState.PAINTS[randi() % GameState.PAINTS.size()]["color"]
 	configure(car, paint, display_name, p_role == Role.COP)
-	if not waypoints.is_empty():
-		global_position = waypoints[0] + Vector3(0, 0.2, 0)
 
 
 func _physics_process(delta: float) -> void:
@@ -91,23 +89,33 @@ func _race_ai(track: IslandWorld) -> Vector2:
 func _chase_player(track: IslandWorld) -> Vector2:
 	if player == null:
 		return _traffic(track)
-	var tx := player.global_position.x
-	var tz := player.global_position.z
-	var target_h := atan2(-(tx - global_position.x), -(tz - global_position.z))
-	if track and not track.dirs2.is_empty():
-		var track_h := track.heading_at(wp_idx)
-		var turn := absf(wrapf(target_h - heading, -PI, PI))
-		if turn > 1.25:
-			target_h = track_h
+	var pcar := player as ArcadeCar
+	var look := 0.55 if pcar == null else clampf(absf(pcar.speed) * 0.045, 0.25, 1.15)
+	var fx := 0.0
+	var fz := 0.0
+	if pcar:
+		fx = -sin(pcar.heading) * pcar.speed * look
+		fz = -cos(pcar.heading) * pcar.speed * look
+	var tx := player.global_position.x + fx
+	var tz := player.global_position.z + fz
+	var dx := tx - global_position.x
+	var dz := tz - global_position.z
+	var dist := Vector2(dx, dz).length()
+	var target_h := atan2(-dx, -dz)
+	if dist < 8.5:
+		var side := signf(-sin(heading) * dz + -cos(heading) * -dx)
+		if is_zero_approx(side):
+			side = 1.0
+		target_h = wrapf(target_h + side * 0.55, -PI, PI)
 	var err := wrapf(target_h - heading, -PI, PI)
-	var steer := clampf(err * 3.0, -1.0, 1.0)
-	var dist := Vector2(tx - global_position.x, tz - global_position.z).length()
-	var desired := max_speed * clampf(0.88 + dist * 0.004, 0.75, 1.0)
-	var throttle := 0.3
-	if speed < desired - 1.5:
-		throttle = 1.0
-	elif speed > desired + 4.0:
-		throttle = -0.4
+	var steer := clampf(err * 4.2, -1.0, 1.0)
+	var desired := max_speed * (1.08 if dist > 22.0 else 0.96)
+	nitro_tank = 1.0
+	var throttle := 1.0
+	if absf(err) > 1.35 and dist < 14.0:
+		throttle = 0.45
+	elif speed > desired + 8.0:
+		throttle = -0.2
 	return Vector2(throttle, steer)
 
 

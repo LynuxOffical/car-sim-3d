@@ -19,12 +19,14 @@ const OPPONENT_OPTIONS: Array[int] = [1, 2, 3, 4, 5]
 const CAMERA_MODES: Array[String] = ["CHASE", "HOOD", "TOP"]
 const STAT_TOP := {"max_speed": 159.0, "accel": 41.0, "steer": 2.90}
 const QUALITY_NAMES: Array[String] = ["LOW", "MEDIUM", "HIGH"]
+const TECHNO_CAR_ID := "phantom"
+const TECHNO_ISLAND := 9
 
 const WEATHERS := [
 	{"name": "CLEAR", "grip": 1.00, "precip": "", "lightning": false, "wet": false, "sun": 1.0, "fog": 1.0},
-	{"name": "RAIN", "grip": 0.85, "precip": "rain", "lightning": false, "wet": true, "sun": 0.62, "fog": 0.70},
-	{"name": "STORM", "grip": 0.78, "precip": "rain", "lightning": true, "wet": true, "sun": 0.50, "fog": 0.58},
-	{"name": "SNOW", "grip": 0.72, "precip": "snow", "lightning": false, "wet": false, "sun": 0.72, "fog": 0.60},
+	{"name": "RAIN", "grip": 0.82, "precip": "rain", "lightning": false, "wet": true, "sun": 0.42, "fog": 0.48},
+	{"name": "STORM", "grip": 0.72, "precip": "rain", "lightning": true, "wet": true, "sun": 0.28, "fog": 0.32},
+	{"name": "SNOW", "grip": 0.68, "precip": "snow", "lightning": false, "wet": false, "sun": 0.58, "fog": 0.42},
 ]
 
 const VEHICLES := [
@@ -113,11 +115,28 @@ var chase_bonus: float = 0.0
 var p2_car_index: int = 1
 var p2_paint_index: int = 3
 var typing := false
+var busted := false
+var bust_progress := 0.0
+var tribute_hold := false
+var techno_pending := false
+var techno_seen := false
 
 func _ready() -> void:
 	quality = clampi(quality, 0, QUALITY_NAMES.size() - 1)
 	touch_enabled = OS.has_feature("android") or OS.has_feature("ios") or OS.has_feature("mobile")
 	apply_weather_idx(weather_idx)
+
+
+func techno_combo() -> bool:
+	if split_screen:
+		return false
+	if not gun_enabled:
+		return false
+	if mode != Mode.FREEPLAY:
+		return false
+	if race_island != TECHNO_ISLAND:
+		return false
+	return str(selected_car().get("id", "")).to_lower() == TECHNO_CAR_ID
 
 
 func selected_car() -> Dictionary:
@@ -188,6 +207,8 @@ func reset_wanted() -> void:
 	chase_bonus = 0.0
 	kill_flash = 0.0
 	cp_flash = 0.0
+	busted = false
+	bust_progress = 0.0
 	bounty_changed.emit(bounty)
 	heat_changed.emit(heat)
 

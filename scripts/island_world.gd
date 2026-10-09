@@ -30,68 +30,68 @@ const WIDTH_SCALE := 1.52
 
 const MAPS := [
 	{
-		"name": "MEADOW CIRCUIT", "tag": "classic  -  flowing corners", "biome": "meadow", "width": 16.0, "samples": 14,
-		"points": [Vector2(0, -85), Vector2(45, -88), Vector2(85, -70), Vector2(100, -30), Vector2(85, 5), Vector2(60, 25), Vector2(55, 55), Vector2(80, 80), Vector2(55, 105), Vector2(10, 95), Vector2(-30, 80), Vector2(-65, 95), Vector2(-100, 75), Vector2(-105, 35), Vector2(-85, 5), Vector2(-100, -35), Vector2(-75, -70), Vector2(-35, -80)],
+		"name": "MEADOW CIRCUIT", "tag": "classic  -  chicane and decreasing hairpin", "biome": "meadow", "width": 16.0, "samples": 28,
+		"points": [Vector2(0, -92), Vector2(34, -98), Vector2(72, -86), Vector2(96, -52), Vector2(100, -14), Vector2(78, 10), Vector2(94, 24), Vector2(72, 40), Vector2(46, 46), Vector2(38, 72), Vector2(68, 92), Vector2(52, 118), Vector2(10, 116), Vector2(-22, 98), Vector2(-8, 72), Vector2(-32, 50), Vector2(-68, 66), Vector2(-102, 52), Vector2(-114, 16), Vector2(-92, -12), Vector2(-110, -42), Vector2(-88, -76), Vector2(-46, -90), Vector2(-14, -88)],
 		"ground": Color(0.29, 0.5, 0.23), "road": Color(0.55, 0.55, 0.58), "sky": Color(0.66, 0.8, 0.95), "stripe_a": Color(0.85, 0.15, 0.15), "stripe_b": Color(0.92, 0.92, 0.92), "scenery": "pine",
 	},
 	{
-		"name": "SUNSET SPEEDWAY", "tag": "desert  -  flat out", "biome": "desert", "width": 18.0, "samples": 18,
-		"points": [Vector2(0, -100), Vector2(60, -95), Vector2(110, -60), Vector2(125, 0), Vector2(110, 60), Vector2(60, 95), Vector2(0, 100), Vector2(-60, 95), Vector2(-110, 60), Vector2(-125, 0), Vector2(-110, -60), Vector2(-60, -95)],
+		"name": "SUNSET SPEEDWAY", "tag": "desert  -  kinked speedbowl", "biome": "desert", "width": 17.5, "samples": 18,
+		"points": [Vector2(0, -112), Vector2(48, -110), Vector2(92, -86), Vector2(118, -42), Vector2(108, -4), Vector2(128, 28), Vector2(102, 64), Vector2(58, 78), Vector2(72, 110), Vector2(22, 122), Vector2(-32, 112), Vector2(-78, 86), Vector2(-52, 48), Vector2(-98, 36), Vector2(-124, -2), Vector2(-110, -52), Vector2(-72, -96), Vector2(-24, -112)],
 		"ground": Color(0.78, 0.68, 0.44), "road": Color(0.6, 0.56, 0.54), "sky": Color(0.96, 0.74, 0.5), "stripe_a": Color(0.8, 0.25, 0.1), "stripe_b": Color(0.95, 0.9, 0.8), "scenery": "desert",
 	},
 	{
-		"name": "ALPINE RUN", "tag": "snow  -  narrow and technical", "biome": "alpine", "width": 14.0, "samples": 14,
-		"points": [Vector2(0, -70), Vector2(40, -75), Vector2(70, -50), Vector2(60, -15), Vector2(90, 10), Vector2(85, 50), Vector2(45, 65), Vector2(10, 45), Vector2(-25, 60), Vector2(-30, 95), Vector2(-70, 90), Vector2(-95, 55), Vector2(-75, 20), Vector2(-95, -15), Vector2(-70, -50), Vector2(-30, -45)],
+		"name": "ALPINE RUN", "tag": "snow  -  stacked switchbacks", "biome": "alpine", "width": 13.5, "samples": 28,
+		"points": [Vector2(0, -78), Vector2(28, -86), Vector2(62, -70), Vector2(72, -36), Vector2(48, -18), Vector2(82, 0), Vector2(70, 32), Vector2(96, 52), Vector2(68, 78), Vector2(28, 70), Vector2(8, 42), Vector2(-18, 58), Vector2(-12, 92), Vector2(-48, 102), Vector2(-82, 78), Vector2(-70, 42), Vector2(-98, 18), Vector2(-86, -18), Vector2(-108, -42), Vector2(-72, -70), Vector2(-32, -62), Vector2(-8, -74)],
 		"ground": Color(0.86, 0.89, 0.93), "road": Color(0.42, 0.42, 0.48), "sky": Color(0.72, 0.78, 0.9), "stripe_a": Color(0.2, 0.35, 0.7), "stripe_b": Color(0.92, 0.92, 0.95), "scenery": "snow_pine",
 	},
 	{
-		"name": "ROCKPORT CITY", "tag": "urban  -  police chase free play", "biome": "city", "width": 20.0, "samples": 12, "city": true,
-		"points": [Vector2(0, -110), Vector2(55, -105), Vector2(105, -75), Vector2(115, -20), Vector2(105, 35), Vector2(70, 70), Vector2(25, 85), Vector2(-25, 85), Vector2(-70, 70), Vector2(-105, 35), Vector2(-115, -20), Vector2(-105, -75), Vector2(-55, -105)],
+		"name": "ROCKPORT CITY", "tag": "urban  -  blocky chase streets", "biome": "city", "width": 18.5, "samples": 16, "city": true,
+		"points": [Vector2(0, -118), Vector2(42, -122), Vector2(88, -98), Vector2(78, -58), Vector2(112, -42), Vector2(118, 2), Vector2(86, 28), Vector2(108, 62), Vector2(72, 92), Vector2(28, 82), Vector2(8, 112), Vector2(-36, 108), Vector2(-28, 68), Vector2(-72, 78), Vector2(-108, 48), Vector2(-92, 8), Vector2(-118, -28), Vector2(-88, -72), Vector2(-108, -102), Vector2(-52, -118)],
 		"ground": Color(0.22, 0.23, 0.26), "road": Color(0.28, 0.28, 0.32), "sky": Color(0.38, 0.4, 0.46), "stripe_a": Color(0.9, 0.9, 0.92), "stripe_b": Color(0.55, 0.55, 0.58), "scenery": "city",
 	},
 	{
-		"name": "HARBOR DISTRICT", "tag": "coastal  -  long straights", "biome": "harbor", "width": 17.0, "samples": 16,
-		"points": [Vector2(0, -95), Vector2(70, -90), Vector2(120, -45), Vector2(115, 15), Vector2(80, 55), Vector2(30, 75), Vector2(-30, 70), Vector2(-80, 45), Vector2(-120, 0), Vector2(-115, -55), Vector2(-75, -90), Vector2(-20, -95)],
+		"name": "HARBOR DISTRICT", "tag": "coastal  -  dock chicane", "biome": "harbor", "width": 16.5, "samples": 18,
+		"points": [Vector2(0, -102), Vector2(48, -108), Vector2(96, -82), Vector2(118, -38), Vector2(92, -8), Vector2(112, 22), Vector2(84, 52), Vector2(48, 42), Vector2(22, 72), Vector2(-18, 88), Vector2(-58, 70), Vector2(-42, 32), Vector2(-88, 18), Vector2(-122, -8), Vector2(-108, -52), Vector2(-78, -42), Vector2(-92, -82), Vector2(-48, -104), Vector2(-12, -96)],
 		"ground": Color(0.35, 0.42, 0.38), "road": Color(0.38, 0.38, 0.42), "sky": Color(0.55, 0.68, 0.82), "stripe_a": Color(0.85, 0.75, 0.2), "stripe_b": Color(0.9, 0.9, 0.92), "scenery": "pine",
 	},
 	{
-		"name": "CANYON PASS", "tag": "mountain  -  tight hairpins", "biome": "canyon", "width": 15.0, "samples": 14,
-		"points": [Vector2(0, -80), Vector2(35, -85), Vector2(75, -60), Vector2(90, -10), Vector2(75, 35), Vector2(40, 70), Vector2(0, 85), Vector2(-45, 75), Vector2(-80, 40), Vector2(-95, -5), Vector2(-80, -55), Vector2(-40, -78)],
+		"name": "CANYON PASS", "tag": "mountain  -  double hairpin gorge", "biome": "canyon", "width": 14.5, "samples": 28,
+		"points": [Vector2(0, -86), Vector2(32, -94), Vector2(70, -74), Vector2(88, -32), Vector2(62, -8), Vector2(92, 18), Vector2(74, 52), Vector2(38, 42), Vector2(18, 74), Vector2(-16, 92), Vector2(-52, 78), Vector2(-38, 42), Vector2(-72, 28), Vector2(-98, -8), Vector2(-76, -38), Vector2(-102, -62), Vector2(-68, -86), Vector2(-28, -70), Vector2(-8, -84)],
 		"ground": Color(0.48, 0.44, 0.36), "road": Color(0.4, 0.38, 0.36), "sky": Color(0.62, 0.7, 0.82), "stripe_a": Color(0.78, 0.55, 0.18), "stripe_b": Color(0.88, 0.88, 0.9), "scenery": "desert",
 	},
 	{
-		"name": "MIDNIGHT METRO", "tag": "night city  -  max bounty zone", "biome": "city", "width": 19.0, "samples": 14, "city": true,
-		"points": [Vector2(0, -100), Vector2(50, -95), Vector2(95, -60), Vector2(100, 0), Vector2(85, 55), Vector2(45, 90), Vector2(0, 100), Vector2(-45, 90), Vector2(-85, 55), Vector2(-100, 0), Vector2(-95, -60), Vector2(-50, -95)],
+		"name": "MIDNIGHT METRO", "tag": "night city  -  downtown maze", "biome": "city", "width": 17.5, "samples": 18, "city": true,
+		"points": [Vector2(0, -108), Vector2(38, -114), Vector2(82, -90), Vector2(70, -52), Vector2(108, -38), Vector2(102, 8), Vector2(68, 18), Vector2(88, 52), Vector2(52, 82), Vector2(12, 68), Vector2(-8, 102), Vector2(-48, 96), Vector2(-32, 58), Vector2(-78, 62), Vector2(-108, 28), Vector2(-86, -8), Vector2(-112, -42), Vector2(-78, -78), Vector2(-98, -108), Vector2(-42, -112)],
 		"ground": Color(0.12, 0.13, 0.16), "road": Color(0.2, 0.2, 0.24), "sky": Color(0.08, 0.09, 0.14), "stripe_a": Color(0.95, 0.85, 0.25), "stripe_b": Color(0.35, 0.35, 0.4), "scenery": "city",
 	},
 	{
-		"name": "PALM COAST", "tag": "tropical  -  sea breeze", "biome": "tropical", "width": 16.0, "samples": 10,
-		"points": [Vector2(0, -90), Vector2(55, -85), Vector2(100, -45), Vector2(110, 10), Vector2(80, 55), Vector2(25, 80), Vector2(-30, 85), Vector2(-80, 50), Vector2(-110, 5), Vector2(-95, -50), Vector2(-50, -85)],
+		"name": "PALM COAST", "tag": "tropical  -  seaside esses", "biome": "tropical", "width": 15.5, "samples": 18,
+		"points": [Vector2(0, -98), Vector2(42, -104), Vector2(86, -78), Vector2(104, -32), Vector2(78, -6), Vector2(98, 28), Vector2(64, 52), Vector2(28, 38), Vector2(-4, 72), Vector2(-48, 88), Vector2(-88, 58), Vector2(-62, 22), Vector2(-102, 2), Vector2(-112, -38), Vector2(-78, -58), Vector2(-96, -88), Vector2(-48, -102), Vector2(-12, -92)],
 		"ground": Color(0.18, 0.52, 0.32), "road": Color(0.42, 0.4, 0.36), "sky": Color(0.35, 0.72, 0.88), "stripe_a": Color(0.95, 0.55, 0.15), "stripe_b": Color(0.95, 0.95, 0.9), "scenery": "palm",
 	},
 	{
-		"name": "FOUNDRY LOOP", "tag": "industrial  -  smokestacks", "biome": "industrial", "width": 18.0, "samples": 8,
-		"points": [Vector2(0, -88), Vector2(48, -92), Vector2(95, -50), Vector2(100, 5), Vector2(70, 55), Vector2(15, 85), Vector2(-40, 80), Vector2(-90, 40), Vector2(-100, -15), Vector2(-70, -70), Vector2(-20, -88)],
+		"name": "FOUNDRY LOOP", "tag": "industrial  -  90-degree yards", "biome": "industrial", "width": 16.5, "samples": 16,
+		"points": [Vector2(0, -96), Vector2(40, -102), Vector2(88, -86), Vector2(102, -40), Vector2(74, -18), Vector2(108, 8), Vector2(96, 48), Vector2(52, 62), Vector2(62, 96), Vector2(12, 102), Vector2(-28, 82), Vector2(-18, 46), Vector2(-68, 52), Vector2(-104, 18), Vector2(-90, -28), Vector2(-108, -68), Vector2(-64, -94), Vector2(-18, -90)],
 		"ground": Color(0.28, 0.26, 0.22), "road": Color(0.24, 0.24, 0.26), "sky": Color(0.42, 0.4, 0.36), "stripe_a": Color(0.95, 0.55, 0.1), "stripe_b": Color(0.2, 0.2, 0.22), "scenery": "factory",
 	},
 	{
-		"name": "VOLCANO RIDGE", "tag": "volcanic  -  ash and heat", "biome": "volcanic", "width": 15.0, "samples": 10,
-		"points": [Vector2(0, -78), Vector2(40, -82), Vector2(78, -48), Vector2(88, 0), Vector2(70, 48), Vector2(25, 78), Vector2(-30, 82), Vector2(-75, 45), Vector2(-88, -5), Vector2(-70, -52), Vector2(-28, -78)],
+		"name": "VOLCANO RIDGE", "tag": "volcanic  -  crater rim esses", "biome": "volcanic", "width": 14.5, "samples": 26,
+		"points": [Vector2(0, -84), Vector2(30, -92), Vector2(68, -70), Vector2(86, -28), Vector2(58, -6), Vector2(88, 22), Vector2(66, 56), Vector2(24, 48), Vector2(4, 82), Vector2(-36, 90), Vector2(-72, 62), Vector2(-48, 28), Vector2(-88, 8), Vector2(-98, -32), Vector2(-70, -52), Vector2(-92, -78), Vector2(-46, -90), Vector2(-12, -80)],
 		"ground": Color(0.22, 0.12, 0.1), "road": Color(0.18, 0.16, 0.16), "sky": Color(0.45, 0.22, 0.16), "stripe_a": Color(0.95, 0.25, 0.08), "stripe_b": Color(0.35, 0.12, 0.08), "scenery": "lava",
 	},
 	{
-		"name": "SALT FLATS", "tag": "desert  -  wide open", "biome": "desert", "width": 22.0, "samples": 8,
-		"points": [Vector2(0, -120), Vector2(70, -110), Vector2(130, -50), Vector2(135, 20), Vector2(90, 80), Vector2(20, 115), Vector2(-60, 105), Vector2(-120, 50), Vector2(-135, -20), Vector2(-100, -85), Vector2(-40, -118)],
+		"name": "SALT FLATS", "tag": "desert  -  high-speed infield cut", "biome": "desert", "width": 20.0, "samples": 16,
+		"points": [Vector2(0, -128), Vector2(58, -124), Vector2(112, -86), Vector2(132, -28), Vector2(108, 18), Vector2(128, 62), Vector2(82, 98), Vector2(28, 88), Vector2(8, 122), Vector2(-48, 118), Vector2(-28, 72), Vector2(-92, 82), Vector2(-132, 28), Vector2(-118, -32), Vector2(-138, -78), Vector2(-86, -118), Vector2(-28, -124)],
 		"ground": Color(0.86, 0.82, 0.7), "road": Color(0.55, 0.52, 0.48), "sky": Color(0.9, 0.82, 0.62), "stripe_a": Color(0.2, 0.2, 0.22), "stripe_b": Color(0.95, 0.92, 0.85), "scenery": "desert",
 	},
 	{
-		"name": "SWITCHBACK RIDGE", "tag": "forest  -  tight esses and hairpins", "biome": "meadow", "width": 13.5, "samples": 16,
-		"points": [Vector2(0, -92), Vector2(28, -98), Vector2(62, -72), Vector2(48, -28), Vector2(82, -4), Vector2(58, 32), Vector2(92, 62), Vector2(48, 88), Vector2(8, 72), Vector2(-28, 96), Vector2(-68, 68), Vector2(-42, 28), Vector2(-92, 2), Vector2(-58, -38), Vector2(-88, -74), Vector2(-32, -90)],
+		"name": "SWITCHBACK RIDGE", "tag": "forest  -  packed hairpins", "biome": "meadow", "width": 13.0, "samples": 28,
+		"points": [Vector2(0, -96), Vector2(26, -104), Vector2(62, -82), Vector2(48, -44), Vector2(82, -22), Vector2(58, 8), Vector2(92, 28), Vector2(64, 58), Vector2(96, 82), Vector2(48, 98), Vector2(12, 78), Vector2(-18, 102), Vector2(-58, 86), Vector2(-36, 52), Vector2(-78, 38), Vector2(-52, 8), Vector2(-96, -8), Vector2(-64, -42), Vector2(-98, -72), Vector2(-52, -94), Vector2(-16, -88)],
 		"ground": Color(0.18, 0.32, 0.16), "road": Color(0.36, 0.35, 0.34), "sky": Color(0.52, 0.68, 0.78), "stripe_a": Color(0.75, 0.55, 0.12), "stripe_b": Color(0.88, 0.88, 0.86), "scenery": "pine",
 	},
 	{
-		"name": "LAGOON STRAITS", "tag": "tropical  -  wide sweep around the bay", "biome": "tropical", "width": 19.0, "samples": 12,
-		"points": [Vector2(0, -118), Vector2(58, -112), Vector2(108, -78), Vector2(128, -18), Vector2(118, 42), Vector2(78, 88), Vector2(22, 112), Vector2(-42, 108), Vector2(-96, 72), Vector2(-124, 12), Vector2(-112, -52), Vector2(-72, -98), Vector2(-22, -116)],
+		"name": "LAGOON STRAITS", "tag": "tropical  -  bay in-and-out", "biome": "tropical", "width": 17.5, "samples": 18,
+		"points": [Vector2(0, -122), Vector2(48, -124), Vector2(98, -96), Vector2(122, -48), Vector2(100, -8), Vector2(118, 36), Vector2(82, 72), Vector2(42, 58), Vector2(8, 96), Vector2(-42, 108), Vector2(-88, 78), Vector2(-58, 38), Vector2(-108, 18), Vector2(-128, -28), Vector2(-102, -68), Vector2(-118, -102), Vector2(-68, -122), Vector2(-18, -116)],
 		"ground": Color(0.16, 0.48, 0.38), "road": Color(0.40, 0.38, 0.34), "sky": Color(0.32, 0.70, 0.86), "stripe_a": Color(0.12, 0.62, 0.58), "stripe_b": Color(0.95, 0.94, 0.88), "scenery": "palm",
 	},
 ]
@@ -294,21 +294,18 @@ func _build_one(idx: int, origin: Vector3) -> void:
 	half_width = _lane_half(spec)
 	var pts: Array = spec["points"]
 	var samples: int = int(spec["samples"])
-	var wps: Array[Vector2] = _catmull(pts, samples)
+	var wps: Array[Vector2] = _clean_wps(_catmull(pts, samples))
+	var frame: Dictionary = _frames(wps)
 	var dirs: Array[Vector2] = []
 	var norms: Array[Vector2] = []
+	dirs.assign(frame["dirs"])
+	norms.assign(frame["norms"])
 	var local_path: Array[Vector3] = []
 	var start := wps2.size()
 	var local_wps2: Array[Vector2] = []
 	for i in wps.size():
 		var a: Vector2 = wps[i]
-		var b: Vector2 = wps[(i + 1) % wps.size()]
-		var d: Vector2 = (b - a)
-		if d.length() < 0.001:
-			d = Vector2(0, 1)
-		d = d.normalized()
-		dirs.append(d)
-		norms.append(Vector2(-d.y, d.x))
+		var d: Vector2 = dirs[i]
 		var wp := Vector3(a.x, 0.5, a.y) + origin
 		path.append(wp)
 		local_path.append(wp)
@@ -335,8 +332,8 @@ func _build_one(idx: int, origin: Vector3) -> void:
 	_ground_from_wps(wps, origin, spec["ground"])
 	_road(wps, dirs, norms, origin, spec)
 	_begin_batch()
-	_curbs(wps, norms, origin, spec)
-	_walls(wps, norms, origin, spec)
+	_curbs(wps, dirs, norms, origin, spec)
+	_walls(wps, dirs, norms, origin, spec)
 	_center_line(wps, dirs, norms, origin)
 	_start_line(wps, dirs, norms, origin)
 	_gantry_stand(wps, dirs, norms, origin, spec)
@@ -372,56 +369,151 @@ func _ground_from_wps(wps: Array[Vector2], origin: Vector3, col: Color) -> void:
 	plane.subdivide_width = 0
 	plane.subdivide_depth = 0
 	mi.mesh = plane
-	mi.position = origin + Vector3((minp.x + maxp.x) * 0.5, -0.05, (minp.y + maxp.y) * 0.5)
+	mi.position = origin + Vector3((minp.x + maxp.x) * 0.5, -0.10, (minp.y + maxp.y) * 0.5)
 	mi.material_override = Mats.ground(col)
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	mi.gi_mode = GeometryInstance3D.GI_MODE_DISABLED
 	add_child(mi)
 
 
+func _clean_wps(wps: Array[Vector2], min_dist := 1.35) -> Array[Vector2]:
+	if wps.size() < 12:
+		return wps
+	var out: Array[Vector2] = []
+	for p in wps:
+		if out.is_empty() or out[out.size() - 1].distance_to(p) >= min_dist:
+			out.append(p)
+	if out.size() > 8 and out[0].distance_to(out[out.size() - 1]) < min_dist:
+		out.pop_back()
+	return out if out.size() >= 12 else wps
+
+
+func _frames(wps: Array[Vector2]) -> Dictionary:
+	var n := wps.size()
+	var dirs: Array[Vector2] = []
+	var norms: Array[Vector2] = []
+	dirs.resize(n)
+	norms.resize(n)
+	for i in n:
+		var d: Vector2 = wps[(i + 1) % n] - wps[i]
+		if d.length_squared() < 0.0002:
+			d = wps[(i + 1) % n] - wps[(i - 1 + n) % n]
+		if d.length_squared() < 0.0002:
+			d = Vector2(0, 1)
+		dirs[i] = d.normalized()
+	for i in n:
+		var prev: Vector2 = dirs[(i - 1 + n) % n]
+		var nxt: Vector2 = dirs[(i + 1) % n]
+		var acc: Vector2 = prev + dirs[i] * 2.0 + nxt
+		if acc.dot(dirs[i]) < 0.05 or acc.length_squared() < 0.0002:
+			continue
+		dirs[i] = acc.normalized()
+	for i in n:
+		norms[i] = Vector2(-dirs[i].y, dirs[i].x)
+	return {"dirs": dirs, "norms": norms}
+
+
+func _cj(ti: float, a: Vector2, b: Vector2) -> float:
+	return ti + pow(maxf(a.distance_squared_to(b), 0.000001), 0.25)
+
+
+func _cu(t: float, a: float, b: float) -> float:
+	var d := b - a
+	if absf(d) < 0.0000001:
+		return 0.0
+	return (t - a) / d
+
+
+func _cpt(p0: Vector2, p1: Vector2, p2: Vector2, p3: Vector2, t0: float, t1: float, t2: float, t3: float, t: float) -> Vector2:
+	var a1 := p0.lerp(p1, _cu(t, t0, t1))
+	var a2 := p1.lerp(p2, _cu(t, t1, t2))
+	var a3 := p2.lerp(p3, _cu(t, t2, t3))
+	var b1 := a1.lerp(a2, _cu(t, t0, t2))
+	var b2 := a2.lerp(a3, _cu(t, t1, t3))
+	return b1.lerp(b2, _cu(t, t1, t2))
+
+
 func _catmull(points: Array, samples: int) -> Array[Vector2]:
 	var n := points.size()
 	var out: Array[Vector2] = []
+	var smp := maxi(samples, 12)
 	for i in n:
 		var p0: Vector2 = points[(i - 1 + n) % n]
 		var p1: Vector2 = points[i]
 		var p2: Vector2 = points[(i + 1) % n]
 		var p3: Vector2 = points[(i + 2) % n]
-		for s in samples:
-			var t := float(s) / float(samples)
-			var t2 := t * t
-			var t3 := t2 * t
-			var x := 0.5 * ((2.0 * p1.x) + (-p0.x + p2.x) * t + (2.0 * p0.x - 5.0 * p1.x + 4.0 * p2.x - p3.x) * t2 + (-p0.x + 3.0 * p1.x - 3.0 * p2.x + p3.x) * t3)
-			var y := 0.5 * ((2.0 * p1.y) + (-p0.y + p2.y) * t + (2.0 * p0.y - 5.0 * p1.y + 4.0 * p2.y - p3.y) * t2 + (-p0.y + 3.0 * p1.y - 3.0 * p2.y + p3.y) * t3)
-			out.append(Vector2(x, y))
+		var t0 := 0.0
+		var t1 := _cj(t0, p0, p1)
+		var t2 := _cj(t1, p1, p2)
+		var t3 := _cj(t2, p2, p3)
+		if t2 - t1 < 0.000001:
+			out.append(p1)
+			continue
+		for s in smp:
+			var t := lerpf(t1, t2, float(s) / float(smp))
+			out.append(_cpt(p0, p1, p2, p3, t0, t1, t2, t3, t))
 	return out
 
 
-func _road(wps: Array[Vector2], _dirs: Array[Vector2], norms: Array[Vector2], origin: Vector3, spec: Dictionary) -> void:
+func _edges(wps: Array[Vector2], dirs: Array[Vector2], norms: Array[Vector2], hw: float) -> Dictionary:
+	var n := wps.size()
+	var left: Array[Vector2] = []
+	var right: Array[Vector2] = []
+	left.resize(n)
+	right.resize(n)
+	for i in n:
+		var d_prev: Vector2 = dirs[(i - 1 + n) % n]
+		var d: Vector2 = dirs[i]
+		var nrm: Vector2 = norms[i]
+		var n_prev := Vector2(-d_prev.y, d_prev.x)
+		var m: Vector2 = n_prev + nrm
+		if m.length_squared() < 0.0001 or m.dot(nrm) < 0.12:
+			m = nrm
+		else:
+			m = m.normalized()
+		var den := maxf(absf(m.dot(nrm)), 0.48)
+		var scale := minf(hw / den, hw * 1.18)
+		var ang := absf(d_prev.angle_to(d))
+		var seg := maxf(wps[i].distance_to(wps[(i + 1) % n]), 0.35)
+		var curve := clampf((ang / maxf(seg, 1.0)) * 7.0, 0.0, 1.0)
+		scale *= lerpf(1.0, 0.64, curve)
+		left[i] = wps[i] + m * scale
+		right[i] = wps[i] - m * scale
+		var span := left[i].distance_to(right[i])
+		var min_span := hw * 1.12
+		if span < min_span:
+			left[i] = wps[i] + nrm * (min_span * 0.5)
+			right[i] = wps[i] - nrm * (min_span * 0.5)
+	return {"left": left, "right": right}
+
+
+func _road(wps: Array[Vector2], dirs: Array[Vector2], norms: Array[Vector2], origin: Vector3, spec: Dictionary) -> void:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var hw := half_width
 	var n := wps.size()
-	var oy := origin.y + 0.06
+	var oy := origin.y + 0.09
 	var o := Vector3(origin.x, 0, origin.z)
+	var edges: Dictionary = _edges(wps, dirs, norms, hw)
+	var left: Array[Vector2] = []
+	var right: Array[Vector2] = []
+	left.assign(edges["left"])
+	right.assign(edges["right"])
 	var vdist := 0.0
 	for i in n:
 		var j := (i + 1) % n
 		var a: Vector2 = wps[i]
 		var b: Vector2 = wps[j]
-		var na: Vector2 = norms[i]
-		var nb: Vector2 = norms[j]
 		var seg := maxf(0.001, a.distance_to(b))
 		var v0 := vdist / 7.0
 		var v1 := (vdist + seg) / 7.0
-		var left_a := Vector3(a.x + na.x * hw, oy, a.y + na.y * hw) + o
-		var right_a := Vector3(a.x - na.x * hw, oy, a.y - na.y * hw) + o
-		var right_b := Vector3(b.x - nb.x * hw, oy, b.y - nb.y * hw) + o
-		var left_b := Vector3(b.x + nb.x * hw, oy, b.y + nb.y * hw) + o
+		var left_a := Vector3(left[i].x, oy, left[i].y) + o
+		var right_a := Vector3(right[i].x, oy, right[i].y) + o
+		var right_b := Vector3(right[j].x, oy, right[j].y) + o
+		var left_b := Vector3(left[j].x, oy, left[j].y) + o
 		_tri_uv(st, right_a, left_a, left_b, Vector2(1, v0), Vector2(0, v0), Vector2(0, v1))
 		_tri_uv(st, right_a, left_b, right_b, Vector2(1, v0), Vector2(0, v1), Vector2(1, v1))
 		vdist += seg
-	st.generate_normals()
 	var mesh := st.commit()
 	var mi := MeshInstance3D.new()
 	mi.mesh = mesh
@@ -435,23 +527,42 @@ func _road(wps: Array[Vector2], _dirs: Array[Vector2], norms: Array[Vector2], or
 	add_child(mi)
 
 
+func _face_n(a: Vector3, b: Vector3, c: Vector3) -> Vector3:
+	var n := (b - a).cross(c - a)
+	if n.length_squared() < 0.000001:
+		return Vector3.UP
+	n = n.normalized()
+	if n.y < -0.15:
+		n = -n
+	if n.y > 0.82:
+		return Vector3.UP
+	return n
+
+
 func _tri(st: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, col: Color = Color.WHITE) -> void:
+	var n := _face_n(a, b, c)
+	st.set_normal(n)
 	st.set_color(col)
 	st.set_uv(Vector2(a.x * 0.12, a.z * 0.12))
 	st.add_vertex(a)
+	st.set_normal(n)
 	st.set_color(col)
 	st.set_uv(Vector2(b.x * 0.12, b.z * 0.12))
 	st.add_vertex(b)
+	st.set_normal(n)
 	st.set_color(col)
 	st.set_uv(Vector2(c.x * 0.12, c.z * 0.12))
 	st.add_vertex(c)
 
 
 func _tri_uv(st: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, ua: Vector2, ub: Vector2, uc: Vector2) -> void:
+	st.set_normal(Vector3.UP)
 	st.set_uv(ua)
 	st.add_vertex(a)
+	st.set_normal(Vector3.UP)
 	st.set_uv(ub)
 	st.add_vertex(b)
+	st.set_normal(Vector3.UP)
 	st.set_uv(uc)
 	st.add_vertex(c)
 
@@ -461,53 +572,75 @@ func _deco_quad(a: Vector3, b: Vector3, c: Vector3, d: Vector3, col: Color) -> v
 	_tri(_batch, a, c, d, col)
 
 
-func _curbs(wps: Array[Vector2], norms: Array[Vector2], origin: Vector3, spec: Dictionary) -> void:
-	var hw := half_width
+func _curbs(wps: Array[Vector2], dirs: Array[Vector2], norms: Array[Vector2], origin: Vector3, spec: Dictionary) -> void:
 	var sa: Color = spec["stripe_a"]
 	var sb: Color = spec["stripe_b"]
 	var o := Vector3(origin.x, 0, origin.z)
 	var n := wps.size()
-	for side in [1.0, -1.0]:
-		for i in n:
-			var j := (i + 1) % n
-			var colr: Color = sa if (i / 3) % 2 == 0 else sb
-			var a: Vector2 = wps[i]
-			var b: Vector2 = wps[j]
-			var na: Vector2 = norms[i] * side
-			var nb: Vector2 = norms[j] * side
-			_deco_quad(
-				Vector3(a.x + na.x * (hw - 1.3), 0.08, a.y + na.y * (hw - 1.3)) + o,
-				Vector3(a.x + na.x * hw, 0.08, a.y + na.y * hw) + o,
-				Vector3(b.x + nb.x * hw, 0.08, b.y + nb.y * hw) + o,
-				Vector3(b.x + nb.x * (hw - 1.3), 0.08, b.y + nb.y * (hw - 1.3)) + o,
-				colr
-			)
+	var edges: Dictionary = _edges(wps, dirs, norms, half_width)
+	var left: Array[Vector2] = []
+	var right: Array[Vector2] = []
+	left.assign(edges["left"])
+	right.assign(edges["right"])
+	for i in n:
+		var j := (i + 1) % n
+		var colr: Color = sa if (i / 3) % 2 == 0 else sb
+		var in_a := (right[i] - left[i]).normalized()
+		var in_b := (right[j] - left[j]).normalized()
+		if in_a.length_squared() < 0.0001:
+			in_a = -norms[i]
+		if in_b.length_squared() < 0.0001:
+			in_b = -norms[j]
+		_deco_quad(
+			Vector3(left[i].x + in_a.x * 1.15, 0.125, left[i].y + in_a.y * 1.15) + o,
+			Vector3(left[i].x - in_a.x * 0.06, 0.125, left[i].y - in_a.y * 0.06) + o,
+			Vector3(left[j].x - in_b.x * 0.06, 0.125, left[j].y - in_b.y * 0.06) + o,
+			Vector3(left[j].x + in_b.x * 1.15, 0.125, left[j].y + in_b.y * 1.15) + o,
+			colr
+		)
+		_deco_quad(
+			Vector3(right[i].x - in_a.x * 1.15, 0.125, right[i].y - in_a.y * 1.15) + o,
+			Vector3(right[i].x + in_a.x * 0.06, 0.125, right[i].y + in_a.y * 0.06) + o,
+			Vector3(right[j].x + in_b.x * 0.06, 0.125, right[j].y + in_b.y * 0.06) + o,
+			Vector3(right[j].x - in_b.x * 1.15, 0.125, right[j].y - in_b.y * 1.15) + o,
+			colr
+		)
 
 
-func _walls(wps: Array[Vector2], norms: Array[Vector2], origin: Vector3, spec: Dictionary) -> void:
-	var hw := half_width
+func _walls(wps: Array[Vector2], dirs: Array[Vector2], norms: Array[Vector2], origin: Vector3, spec: Dictionary) -> void:
 	var h := 1.1
-	var inner := hw + 0.9
-	var outer := hw + 1.7
 	var sa: Color = spec["stripe_a"]
 	var sb: Color = spec["stripe_b"]
 	var o := Vector3(origin.x, 0, origin.z)
 	var n := wps.size()
-	for side in [1.0, -1.0]:
-		for i in n:
-			var j := (i + 1) % n
-			var colr: Color = sa if (i / 4) % 2 == 0 else sb
-			var a: Vector2 = wps[i]
-			var b: Vector2 = wps[j]
-			var na: Vector2 = norms[i] * side
-			var nb: Vector2 = norms[j] * side
-			var ain := Vector3(a.x + na.x * inner, 0, a.y + na.y * inner) + o
-			var bin := Vector3(b.x + nb.x * inner, 0, b.y + nb.y * inner) + o
-			var aout := Vector3(a.x + na.x * outer, 0, a.y + na.y * outer) + o
-			var bout := Vector3(b.x + nb.x * outer, 0, b.y + nb.y * outer) + o
-			_deco_quad(ain, bin, bin + Vector3(0, h, 0), ain + Vector3(0, h, 0), colr)
-			_deco_quad(aout, aout + Vector3(0, h, 0), bout + Vector3(0, h, 0), bout, colr)
-			_deco_quad(ain + Vector3(0, h, 0), bin + Vector3(0, h, 0), bout + Vector3(0, h, 0), aout + Vector3(0, h, 0), colr)
+	var edges: Dictionary = _edges(wps, dirs, norms, half_width)
+	var left: Array[Vector2] = []
+	var right: Array[Vector2] = []
+	left.assign(edges["left"])
+	right.assign(edges["right"])
+	for i in n:
+		var j := (i + 1) % n
+		var colr: Color = sa if (i / 4) % 2 == 0 else sb
+		var in_a := (right[i] - left[i]).normalized()
+		var in_b := (right[j] - left[j]).normalized()
+		if in_a.length_squared() < 0.0001:
+			in_a = -norms[i]
+		if in_b.length_squared() < 0.0001:
+			in_b = -norms[j]
+		var ain := Vector3(left[i].x - in_a.x * 0.45, 0, left[i].y - in_a.y * 0.45) + o
+		var bin := Vector3(left[j].x - in_b.x * 0.45, 0, left[j].y - in_b.y * 0.45) + o
+		var aout := Vector3(left[i].x - in_a.x * 1.35, 0, left[i].y - in_a.y * 1.35) + o
+		var bout := Vector3(left[j].x - in_b.x * 1.35, 0, left[j].y - in_b.y * 1.35) + o
+		_deco_quad(ain, bin, bin + Vector3(0, h, 0), ain + Vector3(0, h, 0), colr)
+		_deco_quad(aout, aout + Vector3(0, h, 0), bout + Vector3(0, h, 0), bout, colr)
+		_deco_quad(ain + Vector3(0, h, 0), bin + Vector3(0, h, 0), bout + Vector3(0, h, 0), aout + Vector3(0, h, 0), colr)
+		ain = Vector3(right[i].x + in_a.x * 0.45, 0, right[i].y + in_a.y * 0.45) + o
+		bin = Vector3(right[j].x + in_b.x * 0.45, 0, right[j].y + in_b.y * 0.45) + o
+		aout = Vector3(right[i].x + in_a.x * 1.35, 0, right[i].y + in_a.y * 1.35) + o
+		bout = Vector3(right[j].x + in_b.x * 1.35, 0, right[j].y + in_b.y * 1.35) + o
+		_deco_quad(ain, bin, bin + Vector3(0, h, 0), ain + Vector3(0, h, 0), colr)
+		_deco_quad(aout, aout + Vector3(0, h, 0), bout + Vector3(0, h, 0), bout, colr)
+		_deco_quad(ain + Vector3(0, h, 0), bin + Vector3(0, h, 0), bout + Vector3(0, h, 0), aout + Vector3(0, h, 0), colr)
 
 
 func _center_line(wps: Array[Vector2], dirs: Array[Vector2], norms: Array[Vector2], origin: Vector3) -> void:
@@ -518,10 +651,10 @@ func _center_line(wps: Array[Vector2], dirs: Array[Vector2], norms: Array[Vector
 		var d: Vector2 = dirs[i]
 		var nrm: Vector2 = norms[i]
 		_deco_quad(
-			Vector3(p.x - nrm.x * 0.18, 0.09, p.y - nrm.y * 0.18) + o,
-			Vector3(p.x + nrm.x * 0.18, 0.09, p.y + nrm.y * 0.18) + o,
-			Vector3(p.x + nrm.x * 0.18 + d.x * 2.2, 0.09, p.y + nrm.y * 0.18 + d.y * 2.2) + o,
-			Vector3(p.x - nrm.x * 0.18 + d.x * 2.2, 0.09, p.y - nrm.y * 0.18 + d.y * 2.2) + o,
+			Vector3(p.x - nrm.x * 0.18, 0.14, p.y - nrm.y * 0.18) + o,
+			Vector3(p.x + nrm.x * 0.18, 0.14, p.y + nrm.y * 0.18) + o,
+			Vector3(p.x + nrm.x * 0.18 + d.x * 2.2, 0.14, p.y + nrm.y * 0.18 + d.y * 2.2) + o,
+			Vector3(p.x - nrm.x * 0.18 + d.x * 2.2, 0.14, p.y - nrm.y * 0.18 + d.y * 2.2) + o,
 			col
 		)
 
@@ -540,7 +673,7 @@ func _start_line(wps: Array[Vector2], dirs: Array[Vector2], norms: Array[Vector2
 			var f0 := float(row) * 1.1
 			var pts: Array[Vector3] = []
 			for pair in [Vector2(l0, f0), Vector2(l0 + cw, f0), Vector2(l0 + cw, f0 + 1.1), Vector2(l0, f0 + 1.1)]:
-				pts.append(Vector3(wx.x + nrm.x * pair.x + d.x * pair.y, 0.10, wx.y + nrm.y * pair.x + d.y * pair.y) + o)
+				pts.append(Vector3(wx.x + nrm.x * pair.x + d.x * pair.y, 0.145, wx.y + nrm.y * pair.x + d.y * pair.y) + o)
 			_deco_quad(pts[0], pts[1], pts[2], pts[3], Color(shade, shade, shade))
 
 
@@ -792,7 +925,6 @@ func _begin_batch() -> void:
 func _end_batch(_shadows: bool) -> void:
 	if _batch == null:
 		return
-	_batch.generate_normals()
 	var mesh := _batch.commit()
 	_batch = null
 	if mesh == null or mesh.get_surface_count() == 0:

@@ -12,6 +12,7 @@ func _ready() -> void:
 	mat.shader = preload("res://shaders/nfs_grade.gdshader")
 	overlay.material = mat
 	add_child(overlay)
+	add_child(preload("res://scripts/weather_overlay.gd").new())
 	flash_rect = ColorRect.new()
 	flash_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
 	flash_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -26,4 +27,4 @@ func _process(_delta: float) -> void:
 	if is_equal_approx(f, _last_flash):
 		return
 	_last_flash = f
-	flash_rect.color.a = clampf(f * 0.55, 0.0, 0.55)
+	flash_rect.color.a = clampf(f * 0.28, 0.0, 0.28)

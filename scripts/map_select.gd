@@ -26,6 +26,7 @@ func show_preview() -> bool:
 func build_ui() -> void:
 	if GameState.race_island < 0:
 		GameState.race_island = 0
+	GameState.techno_pending = false
 	var card := UiKit.panel()
 	card.set_anchors_preset(PRESET_BOTTOM_WIDE)
 	card.offset_left = 80
@@ -75,9 +76,12 @@ func _sync() -> void:
 		name_lab.text = "<   %s   >" % str(spec["name"])
 	if tag_lab:
 		tag_lab.text = "%s    ·    %d / %d" % [str(spec.get("tag", "")), i + 1, IslandWorld.DEFS.size()]
+		if GameState.techno_combo():
+			tag_lab.text += "    ·    so long nerds"
 
 
 func _start() -> void:
+	GameState.techno_pending = GameState.techno_combo()
 	get_tree().change_scene_to_file("res://scenes/loading.tscn")
 
 

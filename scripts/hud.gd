@@ -264,6 +264,11 @@ func _process(_delta: float) -> void:
 		for i in 5:
 			stars += "*" if i < GameState.stars() else "."
 		heat_lab.text = "HEAT  " + stars
+		if GameState.bust_progress > 0.12 and not GameState.busted:
+			heat_lab.text += "   BUSTING  %d%%" % int(GameState.bust_progress * 100.0)
+			heat_lab.add_theme_color_override("font_color", Color(1.0, 0.2, 0.15))
+		else:
+			heat_lab.add_theme_color_override("font_color", Color(1.0, 0.35, 0.30))
 	else:
 		bounty_lab.text = ""
 		heat_lab.text = ""

@@ -57,6 +57,10 @@ func _ready() -> void:
 	else:
 		_attach_hud(player)
 	_attach_chat()
+	add_child(preload("res://scripts/busted_overlay.gd").new())
+	GameState.tribute_hold = false
+	_spawn_tribute()
+	call_deferred("_spawn_tribute")
 	if GameState.touch_enabled and not GameState.split_screen:
 		var touch: Node = preload("res://scripts/touch_ui.gd").new()
 		add_child(touch)
@@ -73,6 +77,22 @@ func _ready() -> void:
 		multiplayer.peer_connected.connect(func(_id): pass)
 		multiplayer.peer_disconnected.connect(_lan_drop)
 	call_deferred("_ensure_view")
+
+
+func _spawn_tribute() -> void:
+	if GameState.split_screen:
+		return
+	if not (GameState.techno_pending or GameState.techno_combo()):
+		return
+	var tree := get_tree()
+	if tree == null:
+		return
+	if tree.root.get_node_or_null("TechnoTribute"):
+		return
+	GameState.techno_pending = false
+	var tribute: Node = preload("res://scripts/techno_tribute.gd").new()
+	tribute.name = "TechnoTribute"
+	tree.root.add_child(tribute)
 
 
 func _ensure_view() -> void:
@@ -273,8 +293,9 @@ func _spawn_life() -> void:
 			player.place(Vector3(wp2.x + nrm2.x * -3.0, 0.2, wp2.y + nrm2.y * -3.0), land.heading_at(pidx), pidx)
 			if player2:
 				player2.place(Vector3(wp2.x + nrm2.x * 3.0, 0.2, wp2.y + nrm2.y * 3.0), land.heading_at(pidx), pidx)
-	if GameState.mode == GameState.Mode.FREEPLAY and GameState.police_enabled and land.is_city(player.global_position):
-		for i in 3:
+	if GameState.police_enabled and GameState.mode != GameState.Mode.RACE:
+		var starter := 4 if land.is_city(player.global_position) else 2
+		for i in starter:
 			_spawn_cop_at(i)
 	var traffic_n := 0
 	if GameState.mode != GameState.Mode.RACE and not (GameState.mode == GameState.Mode.FREEPLAY and GameState.police_enabled):
@@ -331,7 +352,7 @@ func _process(delta: float) -> void:
 			_lan_send()
 	if GameState.mode == GameState.Mode.FREEPLAY:
 		_update_bounty(delta)
-	if GameState.typing:
+	if GameState.typing or GameState.busted or GameState.tribute_hold:
 		return
 	if Input.is_action_just_pressed("pause"):
 		Net.leave()
@@ -411,7 +432,8 @@ func _spawn_cop_at(slot: int) -> void:
 		var rg: Vector2i = land.island_ranges[clampi(ii, 0, land.island_ranges.size() - 1)]
 		start = rg.x
 		count = maxi(rg.y, 1)
-	var idx := start + posmod(count / 3 + slot * 11, count)
+	var pidx := land.nearest_index(player.global_position, player.wp_idx)
+	var idx := start + posmod((pidx - start) - 10 - slot * 6, count)
 	idx = clampi(idx, 0, land.wps2.size() - 1)
 	var cop := NpcCar.new()
 	cop.land = land
@@ -461,12 +483,12 @@ func _update_race(delta: float) -> void:
 	GameState.race_time += delta
 	var green := GameState.race_time >= 0.0
 	if player:
-		player.can_drive = green
+		player.can_drive = green and not GameState.busted and not GameState.tribute_hold
 	if player2:
-		player2.can_drive = green
+		player2.can_drive = green and not GameState.busted and not GameState.tribute_hold
 	for n in get_tree().get_nodes_in_group("npc"):
 		if n is ArcadeCar:
-			(n as ArcadeCar).can_drive = green or GameState.mode != GameState.Mode.RACE
+			(n as ArcadeCar).can_drive = (green or GameState.mode != GameState.Mode.RACE) and not GameState.tribute_hold and not GameState.busted
 	if GameState.gun_enabled and green:
 		_update_combat(delta)
 	_resolve_car_collisions()
@@ -600,56 +622,96 @@ func _resolve_car_collisions() -> void:
 				a.global_position.z -= uz * push
 				b.global_position.x += ux * push
 				b.global_position.z += uz * push
-				a.speed *= 0.97
-				b.speed *= 0.97
-				if a == player or b == player:
-					if maxf(absf(a.speed), absf(b.speed)) > 12.0:
-						GameState.add_crime("TRAFFIC COLLISION", 2400, 0.85)
+				var cop_hit := (a.is_police and b == player) or (b.is_police and a == player)
+				if cop_hit:
+					if a == player:
+						a.speed *= 0.72
+						b.speed *= 0.92
+					else:
+						b.speed *= 0.72
+						a.speed *= 0.92
+					if GameState.police_enabled and GameState.mode != GameState.Mode.RACE:
+						GameState.add_crime("RAMMED BY POLICE", 1800, 0.55)
+						GameState.bust_progress = minf(1.0, GameState.bust_progress + 0.18)
+				else:
+					a.speed *= 0.97
+					b.speed *= 0.97
+					if a == player or b == player:
+						if maxf(absf(a.speed), absf(b.speed)) > 12.0:
+							GameState.add_crime("TRAFFIC COLLISION", 2400, 0.85)
 
 
 func _update_bounty(delta: float) -> void:
-	if player == null or land == null:
+	if player == null or land == null or GameState.busted:
 		return
-	if not GameState.police_enabled or not land.is_city(player.global_position):
+	if not GameState.police_enabled or GameState.mode == GameState.Mode.RACE:
 		GameState.decay_heat(delta)
+		GameState.bust_progress = maxf(0.0, GameState.bust_progress - delta * 0.35)
 		return
+	var in_city := land.is_city(player.global_position)
 	var kmh := player.speed_kmh
-	if kmh > 80.0:
-		GameState.heat += delta * 0.07
-	if kmh > 150.0:
-		GameState.heat += delta * 0.11
-	if kmh > 250.0:
-		GameState.heat += delta * 0.16
+	var heat_mul := 1.55 if in_city else 0.85
+	if kmh > 70.0:
+		GameState.heat += delta * 0.16 * heat_mul
+	if kmh > 130.0:
+		GameState.heat += delta * 0.22 * heat_mul
+	if kmh > 200.0:
+		GameState.heat += delta * 0.30 * heat_mul
 	var police_near := false
 	var police_close := false
+	var police_box := 0
 	var police_count := 0
+	var closest := 999.0
 	for n in get_tree().get_nodes_in_group("npc"):
 		if n is NpcCar and (n as NpcCar).role == NpcCar.Role.COP:
 			police_count += 1
 			var d: float = n.global_position.distance_to(player.global_position)
-			if d < 50.0:
+			closest = minf(closest, d)
+			if d < 62.0:
 				police_near = true
-			if d < 20.0:
+			if d < 16.0:
 				police_close = true
+			if d < 7.5:
+				police_box += 1
 	if police_near:
-		GameState.heat += delta * 0.20
+		GameState.heat += delta * 0.38
+		GameState.identified = true
 	if police_close:
-		GameState.bounty += int(delta * 90.0)
-		GameState.heat += delta * 0.28
-	if GameState.heat > 0.5:
-		GameState.bounty += int(GameState.heat * delta * 40.0)
-	if kmh < 45.0 and not police_near:
-		GameState.heat = maxf(0.0, GameState.heat - delta * 0.15)
-	if GameState.heat > 1.0 and not police_near:
+		GameState.bounty += int(delta * 140.0)
+		GameState.heat += delta * 0.45
+	if GameState.heat > 0.4:
+		GameState.bounty += int(GameState.heat * delta * 70.0)
+	if kmh < 40.0 and not police_near:
+		GameState.heat = maxf(0.0, GameState.heat - delta * 0.08)
+	if GameState.heat > 0.8 and not police_near:
 		GameState.chase_bonus += delta
-		if GameState.chase_bonus > 5.0:
-			GameState.bounty += int(GameState.heat * 300.0)
-			GameState.heat = maxf(0.0, GameState.heat - 1.5)
+		if GameState.chase_bonus > 2.2:
+			GameState.bounty += int(GameState.heat * 400.0)
+			GameState.heat = clampf(GameState.heat + 0.35, 0.0, 5.0)
 			GameState.chase_bonus = 0.0
+			_spawn_cop_at(police_count)
 	else:
 		GameState.chase_bonus = 0.0
+	var pinning := police_close and kmh < 55.0
+	if pinning or police_box >= 2:
+		var rate := 0.55
+		if kmh < 18.0:
+			rate = 1.15
+		if police_box >= 2:
+			rate += 0.55
+		if closest < 4.8:
+			rate += 0.7
+		GameState.bust_progress = minf(1.0, GameState.bust_progress + delta * rate)
+	else:
+		GameState.bust_progress = maxf(0.0, GameState.bust_progress - delta * 0.22)
 	GameState.heat = clampf(GameState.heat, 0.0, 5.0)
 	GameState.heat_changed.emit(GameState.heat)
 	GameState.bounty_changed.emit(GameState.bounty)
-	if GameState.heat >= 4.0 and police_count < 5:
+	var cap := 4 + GameState.stars()
+	if GameState.heat >= 0.7 and police_count < cap:
 		_spawn_cop_at(police_count)
+	if GameState.heat >= 1.0 and GameState.bust_progress >= 1.0:
+		GameState.busted = true
+		GameState.last_crime = "BUSTED" if GameState.last_crime == "" else GameState.last_crime
+		player.can_drive = false
+		player.speed *= 0.15

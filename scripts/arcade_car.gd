@@ -175,7 +175,10 @@ func arcade_step(delta: float, throttle: float, steer: float) -> void:
 		fire_cd = maxf(0.0, fire_cd - delta)
 	if hit_flash > 0.0:
 		hit_flash = maxf(0.0, hit_flash - delta)
-	nitro_active = ai_skill == 0.0 and not is_police and _held("nitro") and nitro_tank > 0.05 and throttle > 0.1
+	nitro_active = throttle > 0.1 and nitro_tank > 0.05 and (
+		(ai_skill == 0.0 and not is_police and _held("nitro"))
+		or (is_police and ai_skill > 0.0)
+	)
 	if nitro_active:
 		nitro_tank = maxf(0.0, nitro_tank - delta * 0.38)
 	else:

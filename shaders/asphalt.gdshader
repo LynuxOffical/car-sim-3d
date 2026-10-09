@@ -11,9 +11,13 @@ void fragment() {
 	vec3 tarmac = mix(vec3(0.12, 0.12, 0.13), albedo.rgb, 0.32);
 	float shoulder = smoothstep(0.08, 0.0, across) + smoothstep(0.92, 1.0, across);
 	vec3 col = tarmac * mix(1.0, 0.88, shoulder);
-	col = mix(col, col * vec3(0.82, 0.86, 0.90), wet * 0.4);
+	float puddle = smoothstep(0.35, 0.85, fract(UV.y * 18.0 + sin(UV.x * 40.0) * 0.15));
+	float wetness = clamp(wet * (0.72 + puddle * 0.45), 0.0, 1.0);
+	col = mix(col, col * vec3(0.55, 0.60, 0.64), wetness);
 	ALBEDO = col;
-	ROUGHNESS = mix(roughness, 0.22, wet);
-	METALLIC = metallic;
-	SPECULAR = mix(0.15, 0.45, wet);
+	ROUGHNESS = mix(roughness, 0.08, wetness);
+	METALLIC = mix(metallic, 0.28, wetness);
+	float ndv = clamp(dot(NORMAL, VIEW), 0.0, 1.0);
+	float fres = pow(1.0 - ndv, 3.0);
+	EMISSION = vec3(0.16, 0.20, 0.24) * fres * wetness;
 }

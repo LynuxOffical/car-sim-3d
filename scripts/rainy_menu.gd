@@ -33,6 +33,9 @@ func _ready() -> void:
 	add_child(_placeholder)
 	_build_chrome()
 	build_ui()
+	var wx: ColorRect = preload("res://scripts/weather_overlay.gd").new()
+	wx.set("menu_bolts", true)
+	add_child(wx)
 	call_deferred("_build_world_behind")
 
 
@@ -524,25 +527,38 @@ func _apply_menu_weather() -> void:
 	var name := str(w.get("name", "CLEAR"))
 	var fog := 0.00105
 	var energy := 1.15
+	var fog_h := 0.0
 	match name:
 		"RAIN":
-			sky = sky.lerp(Color(0.38, 0.44, 0.52), 0.55)
-			fog = 0.004
-			energy = 0.72
+			sky = sky.lerp(Color(0.26, 0.30, 0.36), 0.78)
+			ground = ground.lerp(Color(0.14, 0.16, 0.15), 0.4)
+			fog = 0.016
+			fog_h = 0.9
+			energy = 0.40
 		"STORM":
-			sky = sky.lerp(Color(0.28, 0.32, 0.40), 0.7)
-			fog = 0.006
-			energy = 0.52
+			sky = sky.lerp(Color(0.10, 0.11, 0.14), 0.86)
+			ground = ground.lerp(Color(0.07, 0.07, 0.08), 0.55)
+			fog = 0.028
+			fog_h = 1.4
+			energy = 0.22
 		"SNOW":
-			sky = sky.lerp(Color(0.78, 0.84, 0.90), 0.45)
-			fog = 0.007
-			energy = 0.78
+			sky = sky.lerp(Color(0.76, 0.82, 0.90), 0.7)
+			ground = ground.lerp(Color(0.80, 0.84, 0.90), 0.45)
+			fog = 0.020
+			fog_h = 1.15
+			energy = 0.52
 	Mats.paint_sky(menu_env, sky, ground)
 	menu_env.fog_enabled = true
 	menu_env.fog_density = fog
 	menu_env.fog_light_color = sky
+	menu_env.fog_aerial_perspective = 0.7 if name != "CLEAR" else 0.45
+	menu_env.fog_sky_affect = 0.8 if name != "CLEAR" else 0.4
+	menu_env.fog_height = 2.0
+	menu_env.fog_height_density = fog_h
+	menu_env.ambient_light_energy = 0.42 if name == "STORM" else (0.58 if name == "RAIN" else 0.85)
 	if menu_sun:
 		menu_sun.light_energy = energy
+		menu_sun.light_color = Color(0.55, 0.62, 0.78) if name == "STORM" else (Color(0.72, 0.78, 0.88) if name == "RAIN" else Color(1.0, 0.95, 0.88))
 
 
 func _dress_showroom(world: Node3D) -> void:
